@@ -2,9 +2,9 @@
 
 ## 确定性限流与弹性原语库
 
-账号：yyqdbngt；日期：2026 年 10 月 31 日；主要语言：MoonBit；许可：Apache-2.0。  
+GitHub 仓库账号：yyqdbngt；注册表账号：123123213weqw；日期：2026 年 10 月 31 日；主要语言：MoonBit；许可：Apache-2.0。  
 GitHub：https://github.com/yyqdbngt/moon-ratelimit  
-公共模块：yyqdbngt/moon_ratelimit@0.1.0
+公共模块：123123213weqw/moon_ratelimit@0.1.0（模块发布于 123123213weqw 名下）
 
 本文供个人参考，按实际实现编写。公开提交与 CI 记录另附核对表，不以材料修订代替主办方复核。
 

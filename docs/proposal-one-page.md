@@ -2,7 +2,7 @@
 
 ## 确定性限流与弹性原语库
 
-账号：yyqdbngt。GitHub：https://github.com/yyqdbngt/moon-ratelimit 。模块：yyqdbngt/moon_ratelimit@0.1.0。MoonBit，Apache-2.0。
+账号：yyqdbngt。GitHub：https://github.com/yyqdbngt/moon-ratelimit 。模块：123123213weqw/moon_ratelimit@0.1.0（发布于 123123213weqw 名下，仓库在 yyqdbngt）。MoonBit，Apache-2.0。
 
 **空白与目标。** mooncakes 注册表 3472 个模块中无任何限流实现（rate-limit/bucket/throttle/GCRA 均检索为空）。本项目提供令牌桶、GCRA、固定/精确滑动窗口与种子化抖动退避，全部为注入时钟的纯决策函数。
 

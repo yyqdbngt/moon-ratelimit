@@ -3,7 +3,7 @@
 Deterministic rate-limiting and resilience primitives, implemented in MoonBit with verified decision laws.
 
 - Repository: [https://github.com/yyqdbngt/moon-ratelimit](https://github.com/yyqdbngt/moon-ratelimit)
-- Package: `yyqdbngt/moon_ratelimit@0.1.0`
+- Package: `123123213weqw/moon_ratelimit@0.1.0`
 - License: Apache-2.0
 
 ## Implemented
@@ -35,7 +35,7 @@ capability with pinned answers.
 
 ```moonbit
 import {
-  "yyqdbngt/moon_ratelimit" @ratelimit,
+  "123123213weqw/moon_ratelimit" @ratelimit,
   "moonbitlang/core/json",
 }
 

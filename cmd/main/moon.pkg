@@ -1,7 +1,7 @@
 supported_targets = "js"
 
 import {
-  "yyqdbngt/moon_ratelimit" @engine,
+  "123123213weqw/moon_ratelimit" @engine,
   "moonbitlang/core/json",
   "moonbitlang/core/env",
 }
