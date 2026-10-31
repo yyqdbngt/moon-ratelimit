@@ -46,6 +46,8 @@ fn limit_with(request : Value) -> Value raise InputError {
   match algorithm {
     "token_bucket" => limit_token_bucket(request, events)
     "gcra" => limit_gcra(request, events)
+    "fixed_window" => limit_fixed_window(request, events)
+    "sliding_window" => limit_sliding_window(request, events)
     _ => raise InputError("unsupported limiter algorithm: " + algorithm)
   }
 }
@@ -147,4 +149,144 @@ fn limit_token_bucket(
     ("denied", Number((events.length() - allowed).to_double())),
     ("allowed_weight", Number(allowed_weight)),
   ])
+}
+
+///|
+/// Windows count events, so weights must be whole numbers there; buckets take
+/// continuous weights. The refusal names the offending weight.
+fn integer_weight(event : Event) -> Int32 raise InputError {
+  if event.weight.floor() != event.weight || event.weight > 2147483647.0 {
+    raise InputError(
+      "window algorithms need whole-number weights: " + event.weight.to_string(),
+    )
+  }
+  event.weight.to_int()
+}
+
+///|
+fn window_decision(
+  event : Event,
+  allowed : Bool,
+  retry_after : Double?,
+  remaining : Double,
+) -> Value {
+  record([
+    ("at", Number(event.at)),
+    ("allowed", Bool(allowed)),
+    (
+      "retry_after",
+      match retry_after {
+        Some(seconds) => Number(seconds)
+        None => Null
+      },
+    ),
+    ("remaining", Number(remaining)),
+  ])
+}
+
+///|
+fn read_window_limit(request : Value) -> Int32 raise InputError {
+  let limit = num(required(request, "limit"))
+  if limit < 1.0 || limit.floor() != limit || limit > 2147483647.0 {
+    raise InputError("limit must be a positive whole number")
+  }
+  limit.to_int()
+}
+
+///|
+fn read_window_seconds(request : Value) -> Double raise InputError {
+  let window = num(required(request, "window_seconds"))
+  if window <= 0.0 {
+    raise InputError("window_seconds must be positive")
+  }
+  window
+}
+
+///|
+fn replay_window(
+  events : Array[Event],
+  weights : Array[Int32],
+  check : (Double, Int32) -> Admission,
+  name : String,
+) -> Value {
+  let decisions : Array[Value] = []
+  let mut allowed = 0
+  let mut allowed_weight = 0.0
+  for i, event in events {
+    let admission = check(event.at, weights[i])
+    if admission.allowed {
+      allowed += 1
+      allowed_weight += event.weight
+    }
+    decisions.push(
+      window_decision(
+        event,
+        admission.allowed,
+        admission.retry_after,
+        admission.tokens,
+      ),
+    )
+  }
+  record([
+    ("algorithm", String(name)),
+    ("events", Number(events.length().to_double())),
+    ("allowed", Number(allowed.to_double())),
+    ("denied", Number((events.length() - allowed).to_double())),
+    ("allowed_weight", Number(allowed_weight)),
+    ("decisions", Array(decisions)),
+  ])
+}
+
+///|
+fn limit_fixed_window(
+  request : Value,
+  events : Array[Event],
+) -> Value raise InputError {
+  let limit = read_window_limit(request)
+  let window = read_window_seconds(request)
+  let weights : Array[Int32] = []
+  for event in events {
+    weights.push(integer_weight(event))
+  }
+  let limiter = fixed_window(limit, window)
+  let report = replay_window(
+    events,
+    weights,
+    (now, weight) => limiter.check(now, weight),
+    "fixed_window",
+  )
+  let fields = obj(report).copy()
+  fields["limit"] = Number(limit.to_double())
+  fields["window_seconds"] = Number(window)
+  Object(fields)
+}
+
+///|
+fn limit_sliding_window(
+  request : Value,
+  events : Array[Event],
+) -> Value raise InputError {
+  let limit = read_window_limit(request)
+  let window = read_window_seconds(request)
+  let weights : Array[Int32] = []
+  for event in events {
+    weights.push(integer_weight(event))
+    if event.weight > limit.to_double() {
+      raise InputError(
+        "event weight exceeds limit and can never be admitted: " +
+        event.weight.to_string(),
+      )
+    }
+  }
+  let limiter = sliding_window(limit, window)
+  let report = replay_window(
+    events,
+    weights,
+    (now, weight) => limiter.check(now, weight),
+    "sliding_window",
+  )
+  let fields = obj(report).copy()
+  fields["limit"] = Number(limit.to_double())
+  fields["window_seconds"] = Number(window)
+  Object(fields)
 }
