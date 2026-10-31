@@ -1,0 +1,35 @@
+{
+  "algorithm": "token_bucket",
+  "rate": 1,
+  "burst": 2,
+  "decisions": [
+    {
+      "at": 0,
+      "allowed": true,
+      "retry_after": null,
+      "tokens": 1
+    },
+    {
+      "at": 0,
+      "allowed": true,
+      "retry_after": null,
+      "tokens": 0
+    },
+    {
+      "at": 0.5,
+      "allowed": false,
+      "retry_after": 0.5,
+      "tokens": 0.5
+    },
+    {
+      "at": 1.5,
+      "allowed": true,
+      "retry_after": null,
+      "tokens": 0.5
+    }
+  ],
+  "events": 4,
+  "allowed": 3,
+  "denied": 1,
+  "allowed_weight": 3
+}

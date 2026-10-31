@@ -1,0 +1,16 @@
+{
+  "algorithm": "gcra",
+  "rate": 2,
+  "burst": 1,
+  "events": [
+    {
+      "at": 0
+    },
+    {
+      "at": 0.25
+    },
+    {
+      "at": 0.5
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "operation": "backoff",
+  "base_ms": 100,
+  "multiplier": 2,
+  "max_ms": 1600,
+  "jitter": "full",
+  "attempts": 6,
+  "seed": 20261031
+}

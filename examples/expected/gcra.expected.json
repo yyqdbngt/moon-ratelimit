@@ -1,0 +1,29 @@
+{
+  "algorithm": "gcra",
+  "rate": 2,
+  "burst": 1,
+  "decisions": [
+    {
+      "at": 0,
+      "allowed": true,
+      "retry_after": null,
+      "tokens": 0
+    },
+    {
+      "at": 0.25,
+      "allowed": false,
+      "retry_after": 0.25,
+      "tokens": 0.5
+    },
+    {
+      "at": 0.5,
+      "allowed": true,
+      "retry_after": null,
+      "tokens": 0
+    }
+  ],
+  "events": 3,
+  "allowed": 2,
+  "denied": 1,
+  "allowed_weight": 2
+}

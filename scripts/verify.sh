@@ -16,5 +16,12 @@ for target in js wasm wasm-gc native; do
   printf '%s test: ' "$target"
   moon test --target "$target" | tail -1
 done
+moon build --target js
+printf 'fixtures: '
+node scripts/check.mjs | tail -1
+printf 'oracle: '
+python3 -B scripts/reference.py | tail -1
+printf 'stats: '
+python3 -B scripts/stats.py | tail -1
 moon fmt --check
 echo 'Verify: every step passed'

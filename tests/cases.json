@@ -1,0 +1,164 @@
+[
+  {
+    "name": "token bucket burst then deny",
+    "request": {
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        }
+      ]
+    },
+    "expected": {
+      "algorithm": "token_bucket",
+      "allowed": 2,
+      "denied": 1,
+      "decisions/2/retry_after": 1
+    }
+  },
+  {
+    "name": "gcra equivalent verdicts",
+    "request": {
+      "algorithm": "gcra",
+      "rate": 2,
+      "burst": 1,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0.25
+        },
+        {
+          "at": 0.5
+        }
+      ]
+    },
+    "expected": {
+      "algorithm": "gcra",
+      "allowed": 2,
+      "denied": 1,
+      "decisions/1/retry_after": 0.25
+    }
+  },
+  {
+    "name": "fixed window boundary reset",
+    "request": {
+      "algorithm": "fixed_window",
+      "limit": 2,
+      "window_seconds": 1,
+      "events": [
+        {
+          "at": 0.9
+        },
+        {
+          "at": 0.95
+        },
+        {
+          "at": 1.05
+        }
+      ]
+    },
+    "expected": {
+      "algorithm": "fixed_window",
+      "allowed": 3
+    }
+  },
+  {
+    "name": "sliding window holds the line",
+    "request": {
+      "algorithm": "sliding_window",
+      "limit": 2,
+      "window_seconds": 1,
+      "events": [
+        {
+          "at": 0.95
+        },
+        {
+          "at": 0.99
+        },
+        {
+          "at": 1.01
+        },
+        {
+          "at": 1.05
+        }
+      ]
+    },
+    "expected": {
+      "algorithm": "sliding_window",
+      "allowed": 2
+    }
+  },
+  {
+    "name": "pure exponential table",
+    "request": {
+      "operation": "backoff",
+      "base_ms": 100,
+      "multiplier": 2,
+      "max_ms": 800,
+      "attempts": 6
+    },
+    "expected": {
+      "strategy": "exponential",
+      "jitter": "none",
+      "capped_attempts": 3,
+      "delays_ms": [
+        100,
+        200,
+        400,
+        800,
+        800,
+        800
+      ]
+    }
+  },
+  {
+    "name": "unknown algorithm refused",
+    "error": true,
+    "request": {
+      "algorithm": "leaky_bucket",
+      "rate": 1,
+      "events": [
+        {
+          "at": 0
+        }
+      ]
+    }
+  },
+  {
+    "name": "event times must not go backwards",
+    "error": true,
+    "request": {
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 1,
+      "events": [
+        {
+          "at": 2
+        },
+        {
+          "at": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "multiplier out of band refused",
+    "error": true,
+    "request": {
+      "operation": "backoff",
+      "base_ms": 100,
+      "multiplier": 10,
+      "attempts": 3
+    }
+  }
+]
