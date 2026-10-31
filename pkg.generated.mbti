@@ -1,0 +1,69 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "yyqdbngt/moon_ratelimit"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn arr(Value) -> Array[Value] raise InputError
+
+pub fn execute(Json) -> Json raise
+
+pub fn field(Value, String) -> Value
+
+pub fn fields_only(Value, Array[String]) -> Unit raise InputError
+
+pub fn from_json(Json) -> Value
+
+pub fn get(Value, String) -> Value
+
+pub fn has(Value, String) -> Bool
+
+pub fn num(Value) -> Double raise InputError
+
+pub fn obj(Value) -> Map[String, Value] raise InputError
+
+pub fn optional_num(Value, Double) -> Double raise InputError
+
+pub fn optional_str(Value, String) -> String raise InputError
+
+pub fn record(Array[(String, Value)]) -> Value
+
+pub fn required(Value, String) -> Value raise InputError
+
+pub fn run(Value) -> Value raise InputError
+
+pub fn str(Value) -> String raise InputError
+
+pub fn strings(Array[String]) -> Value
+
+// Errors
+pub(all) suberror InputError {
+  InputError(String)
+} derive(Eq, @debug.Debug)
+pub fn InputError::equal(Self, Self) -> Bool
+pub fn InputError::not_equal(Self, Self) -> Bool
+pub fn InputError::output(Self, &Logger) -> Unit
+pub fn InputError::to_repr(Self) -> @debug.Repr
+pub fn InputError::to_string(Self) -> String
+pub impl Show for InputError
+
+// Types and methods
+pub(all) enum Value {
+  Null
+  Bool(Bool)
+  Number(Double)
+  String(String)
+  Array(Array[Value])
+  Object(Map[String, Value])
+} derive(Eq, @debug.Debug)
+pub fn Value::canonical(Self) -> String
+pub fn Value::equal(Self, Self) -> Bool
+pub fn Value::not_equal(Self, Self) -> Bool
+pub fn Value::to_json(Self) -> Json
+pub fn Value::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

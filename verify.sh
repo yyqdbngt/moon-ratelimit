@@ -1,0 +1,20 @@
+#!/bin/sh
+# One command runs the whole ladder. Native builds need a C compiler; set
+# SKIP_NATIVE=1 to skip that target.
+set -e
+cd "$(dirname "$0")/.."
+export MOON_HOME="${MOON_HOME:-$HOME/.moon}"
+export PATH="$MOON_HOME/bin:$PATH"
+for target in js wasm wasm-gc native; do
+  if [ "$target" = "native" ] && [ -n "$SKIP_NATIVE" ]; then
+    echo "native: skipped (SKIP_NATIVE=1)"
+    continue
+  fi
+  printf '%s check: ' "$target"
+  moon check --deny-warn --target "$target" >/dev/null
+  echo "0 warnings"
+  printf '%s test: ' "$target"
+  moon test --target "$target" | tail -1
+done
+moon fmt --check
+echo 'Verify: every step passed'
