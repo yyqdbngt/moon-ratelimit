@@ -11,6 +11,7 @@ pub fn run(request : Value) -> Value raise InputError {
   let operation = optional_str(get(request, "operation"), "limit")
   match operation {
     "limit" => limit_with(request)
+    "backoff" => backoff_with(request)
     _ => raise InputError("unsupported ratelimit operation: " + operation)
   }
 }
