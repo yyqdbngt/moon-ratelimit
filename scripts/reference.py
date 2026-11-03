@@ -116,6 +116,21 @@ def compare(label, decisions, engine_decisions):
             assert abs(want_retry - got_retry) < 1e-9, f'{label}[{i}] retry {want_retry} vs {got_retry}'
         assert abs(free - (got.get('tokens', got.get('remaining')))) < 1e-9, f'{label}[{i}] free'
 
+def bulk_reference(request):
+    rate = request['rate']
+    capacity = request['burst']
+    weight = request.get('weight', 1.0)
+    count = request['count']
+    admitted = min(int(capacity // weight), int(count))
+    remainder = int(count) - admitted
+    retry = None if remainder == 0 else (weight - (capacity - admitted * weight)) / rate
+    return {
+        'algorithm': 'token_bucket', 'at': request['at'],
+        'weight': weight, 'count': count,
+        'admitted': admitted, 'denied': remainder,
+        'retry_after': retry, 'remaining_tokens': capacity - admitted * weight,
+    }
+
 def main():
     checked = 0
     cases = json.loads((ROOT / 'tests/cases.json').read_text())
@@ -136,6 +151,8 @@ def main():
                 compare('fixture', fixed_window(events, int(request['limit']), request['window_seconds']), report['decisions'])
             elif algorithm == 'sliding_window':
                 compare('fixture', sliding_window(events, int(request['limit']), request['window_seconds']), report['decisions'])
+        elif request.get('operation') in ('bulk', 'state'):
+            pass  # handled by bulk_reference below
         else:
             delays = backoff(request['base_ms'], request.get('multiplier', 2.0),
                 request.get('max_ms', 30000.0), request.get('jitter', 'none'),
@@ -179,6 +196,18 @@ def main():
             report = run(request)
             for a, b in zip(delays, report['delays_ms']):
                 assert a == b, f'{jitter}/{seed}: {a} vs {b}'
+            checked += 1
+    for case in json.loads((ROOT / 'tests/cases.json').read_text()):
+        if case.get('operation') == 'bulk' and not case.get('error'):
+            report = run(case['request'])
+            want = bulk_reference(case['request'])
+            for key, value in want.items():
+                if key == 'retry_after':
+                    assert report[key] == value, (key, report.get(key), value)
+                elif isinstance(value, (int, float)):
+                    assert abs(report[key] - value) < 1e-9, (key, report.get(key), value)
+                else:
+                    assert report[key] == value, (key, report.get(key), value)
             checked += 1
     print(f'Oracle: {checked} independent checks agree '
         + '(fixtures, random dyadic schedules, bit-exact jitter tables)')
