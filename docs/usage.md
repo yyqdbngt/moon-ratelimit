@@ -73,3 +73,27 @@ carries `delays_ms` and `capped_attempts`.
 
 Success exits 0; a refused request exits 1 with one `{"error"}` object; a
 usage mistake (wrong argument shape) exits 2.
+
+## state
+
+Reports the limiter's free capacity at an instant without admitting.
+
+```json
+{"operation": "state", "algorithm": "token_bucket", "rate": 1, "burst": 5, "at": 10}
+```
+
+Returns `algorithm`, `at`, `free` and `capacity`. On a fresh limiter `free`
+equals `capacity`; the operation shares the same validation as limit.
+
+## bulk
+
+Batch admission on the token bucket: how many of a repeated weight fit now.
+
+```json
+{"operation": "bulk", "rate": 1, "burst": 5, "at": 0, "weight": 2, "count": 4}
+```
+
+Returns `admitted` (floor of capacity/weight, capped at count), `denied`,
+`retry_after` (seconds until the next admission; null when all admitted) and
+`remaining_tokens`. `weight` must not exceed `burst`; `count` is 1..1000.
+

@@ -19,3 +19,13 @@ fixtures, on random dyadic schedules and on bit-exact jitter tables. The CLI
 fixtures and the four shipped examples run through the real binary, the
 examples against pinned answers; PROJECT_STATS.md is machine-recounted; the
 ladder runs four backends with --deny-warn.
+
+## Bulk and state
+
+The bulk operation answers "how many of this weight fit right now" in one
+arithmetic step (admitted = floor(capacity / weight), capped at the requested
+count) and names the exact retry_after for the remainder. The state operation
+reports free capacity at an instant without admitting; on a fresh limiter
+the answer is always the full capacity. Both share the validation contract
+with limit; bulk currently supports only the token bucket.
+
