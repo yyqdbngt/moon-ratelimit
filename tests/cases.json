@@ -201,5 +201,52 @@
       "burst": 1,
       "at": -1
     }
+  },
+  {
+    "name": "bulk admits floor of capacity over weight",
+    "request": {
+      "operation": "bulk",
+      "rate": 1,
+      "burst": 5,
+      "at": 0,
+      "weight": 2,
+      "count": 4
+    },
+    "expected": {
+      "admitted": 2,
+      "denied": 2,
+      "retry_after": 1,
+      "remaining_tokens": 1
+    }
+  },
+  {
+    "name": "bulk all admitted",
+    "error": false,
+    "request": {
+      "operation": "bulk",
+      "rate": 1,
+      "burst": 10,
+      "at": 0,
+      "weight": 2,
+      "count": 5
+    },
+    "expected": {
+      "admitted": 5,
+      "denied": 0,
+      "retry_after": null,
+      "remaining_tokens": 0
+    }
+  },
+  {
+    "name": "bulk overweight refused",
+    "error": true,
+    "request": {
+      "operation": "bulk",
+      "rate": 1,
+      "burst": 1,
+      "at": 0,
+      "weight": 2,
+      "count": 1
+    }
   }
 ]

@@ -341,3 +341,57 @@ fn limit_sliding_window(
   fields["window_seconds"] = Number(window)
   Object(fields)
 }
+
+///|
+fn bulk_with(request : Value) -> Value raise InputError {
+  fields_only(request, [
+    "operation", "algorithm", "rate", "burst", "at", "weight", "count",
+  ])
+  let algorithm = optional_str(get(request, "algorithm"), "token_bucket")
+  if algorithm != "token_bucket" {
+    raise InputError("bulk is only supported by token_bucket in 0.2.0")
+  }
+  let rate = num(required(request, "rate"))
+  let capacity = num(required(request, "burst"))
+  if rate <= 0.0 {
+    raise InputError("rate must be positive")
+  }
+  if capacity <= 0.0 {
+    raise InputError("burst must be positive")
+  }
+  let at = num(required(request, "at"))
+  if at < 0.0 {
+    raise InputError("at must be nonnegative")
+  }
+  let weight = optional_num(get(request, "weight"), 1.0)
+  if weight <= 0.0 {
+    raise InputError("weight must be positive")
+  }
+  if weight > capacity {
+    raise InputError("weight exceeds burst and can never be admitted")
+  }
+  let count = num(required(request, "count"))
+  if count < 1.0 || count.floor() != count || count > 1000.0 {
+    raise InputError("count must be a whole number 1..1000")
+  }
+  // A fresh bucket holds capacity tokens; each admission costs weight.
+  let admitted = (capacity / weight).floor()
+  let admitted = if admitted < 0.0 { 0.0 } else { admitted }
+  let admitted = if admitted > count { count } else { admitted }
+  let remainder = count - admitted
+  let retry_after = if remainder == 0.0 {
+    Null
+  } else {
+    Number((weight - (capacity - admitted * weight)) / rate)
+  }
+  record([
+    ("algorithm", String("token_bucket")),
+    ("at", Number(at)),
+    ("weight", Number(weight)),
+    ("count", Number(count)),
+    ("admitted", Number(admitted)),
+    ("denied", Number(remainder)),
+    ("retry_after", retry_after),
+    ("remaining_tokens", Number(capacity - admitted * weight)),
+  ])
+}
