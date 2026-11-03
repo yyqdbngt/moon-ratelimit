@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.1.0 — 2026-10-31
+## 0.2.0 — 2026-11-03
+
+Registry version: 0.2.0. The state operation reports free capacity at an
+instant without admitting; the bulk operation answers batch admission on the
+token bucket in one arithmetic step; a 22-case malformed-input sweep and the
+bulk oracle extension join the ladder.
+
+## 0.1.0 — 2026-10-31## 0.1.0 — 2026-10-31
 
 Registry version: 0.1.0.
 
