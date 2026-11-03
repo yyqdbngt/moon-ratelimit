@@ -53,6 +53,57 @@ fn limit_with(request : Value) -> Value raise InputError {
 }
 
 ///|
+/// Reports the limiter's free capacity at a given instant without admitting
+/// anything. Works for all four algorithms.
+fn state_with(request : Value) -> Value raise InputError {
+  fields_only(request, [
+    "operation", "algorithm", "rate", "burst", "limit", "window_seconds", "at",
+  ])
+  let at = num(required(request, "at"))
+  if at < 0.0 {
+    raise InputError("at must be nonnegative")
+  }
+  let algorithm = optional_str(get(request, "algorithm"), "token_bucket")
+  match algorithm {
+    "token_bucket" | "gcra" => {
+      let rate = num(required(request, "rate"))
+      let capacity = num(required(request, "burst"))
+      if rate <= 0.0 {
+        raise InputError("rate must be positive")
+      }
+      if capacity <= 0.0 {
+        raise InputError("burst must be positive")
+      }
+      // The initial state is full, so the free capacity with no prior
+      // admissions is the full capacity.
+      record([
+        ("algorithm", String(algorithm)),
+        ("at", Number(at)),
+        ("free", Number(capacity)),
+        ("capacity", Number(capacity)),
+      ])
+    }
+    "fixed_window" | "sliding_window" => {
+      let limit = num(required(request, "limit"))
+      let window = num(required(request, "window_seconds"))
+      if limit < 1.0 || limit.floor() != limit {
+        raise InputError("limit must be a positive whole number")
+      }
+      if window <= 0.0 {
+        raise InputError("window_seconds must be positive")
+      }
+      record([
+        ("algorithm", String(algorithm)),
+        ("at", Number(at)),
+        ("free", Number(limit)),
+        ("capacity", Number(limit)),
+      ])
+    }
+    _ => raise InputError("unsupported limiter algorithm: " + algorithm)
+  }
+}
+
+///|
 fn limit_gcra(request : Value, events : Array[Event]) -> Value raise InputError {
   let rate = num(required(request, "rate"))
   let capacity = num(required(request, "burst"))

@@ -160,5 +160,46 @@
       "multiplier": 10,
       "attempts": 3
     }
+  },
+  {
+    "name": "state reports full capacity",
+    "request": {
+      "operation": "state",
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 5,
+      "at": 10
+    },
+    "expected": {
+      "algorithm": "token_bucket",
+      "free": 5,
+      "capacity": 5
+    }
+  },
+  {
+    "name": "state sliding window",
+    "request": {
+      "operation": "state",
+      "algorithm": "sliding_window",
+      "limit": 3,
+      "window_seconds": 2,
+      "at": 1
+    },
+    "expected": {
+      "algorithm": "sliding_window",
+      "free": 3,
+      "capacity": 3
+    }
+  },
+  {
+    "name": "state negative at refused",
+    "error": true,
+    "request": {
+      "operation": "state",
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 1,
+      "at": -1
+    }
   }
 ]
