@@ -402,5 +402,30 @@
     "expected": {
       "allowed": 5
     }
+  },
+  {
+    "name": "leaky bucket fill drain",
+    "request": {
+      "algorithm": "leaky_bucket",
+      "rate": 1,
+      "burst": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 3
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 3
+    }
   }
 ]
