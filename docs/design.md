@@ -105,3 +105,7 @@ bulk is a token-bucket-only convenience in 0.2.0. Extending it to other algorith
 ## Retry composition
 
 The library provides both a limiter (retry_after in seconds) and a backoff (delay in milliseconds). Combining them — sleeping max(retry_after, backoff) — is caller policy, not library behavior, because the right composition depends on the deployment.
+
+## Error contract
+
+Every refusal names the field and the violated constraint: 'rate must be positive', 'event weight exceeds burst and can never be admitted: 2'. Callers parse the error string, not a code.
