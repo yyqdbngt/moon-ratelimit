@@ -49,3 +49,7 @@ The rate parameter is any positive finite double. Rates below one (fractional to
 ## Window semantics detail
 
 The sliding window holds the half-open interval (now - window, now]: an event exactly at now - window has aged out. The fixed window counts per wall-clock bucket with no carry-over across boundaries, which admits up to 2x the limit through a boundary straddle.
+
+## Backoff jitter contracts
+
+Full jitter draws anywhere in [0, pure]; equal jitter keeps half the exponential and draws the rest; decorrelated redraws between base and 3x the previous sleep. All shapes share the same geometric growth and cap; only the draw differs.
