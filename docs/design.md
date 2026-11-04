@@ -97,3 +97,7 @@ Edge tests pin exact arithmetic; the oracle re-derives every answer from the req
 ## Sliding window memory
 
 The exact sliding window remembers every admitted (time, weight) entry until it ages out. Memory grows with the events in one window; for a bounded-memory approximation, the fixed window costs two integers.
+
+## Bulk operation scope
+
+bulk is a token-bucket-only convenience in 0.2.0. Extending it to other algorithms requires defining what batch admission means for a window (whole-batch or per-event) and for GCRA (whether the tat advances per event or once.
