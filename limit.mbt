@@ -48,6 +48,7 @@ fn limit_with(request : Value) -> Value raise InputError {
     "gcra" => limit_gcra(request, events)
     "fixed_window" => limit_fixed_window(request, events)
     "sliding_window" => limit_sliding_window(request, events)
+    "leaky_bucket" => limit_leaky_bucket(request, events)
     _ => raise InputError("unsupported limiter algorithm: " + algorithm)
   }
 }
@@ -393,5 +394,48 @@ fn bulk_with(request : Value) -> Value raise InputError {
     ("denied", Number(remainder)),
     ("retry_after", retry_after),
     ("remaining_tokens", Number(capacity - admitted * weight)),
+  ])
+}
+
+///|
+fn limit_leaky_bucket(
+  request : Value,
+  events : Array[Event],
+) -> Value raise InputError {
+  let rate = num(required(request, "rate"))
+  let capacity = num(required(request, "burst"))
+  if rate <= 0.0 {
+    raise InputError("rate must be positive")
+  }
+  if capacity <= 0.0 {
+    raise InputError("burst must be positive")
+  }
+  let limiter = leaky_bucket(rate, capacity)
+  let decisions : Array[Value] = []
+  let mut allowed = 0
+  let mut allowed_weight = 0.0
+  for event in events {
+    if event.weight > capacity {
+      raise InputError(
+        "event weight exceeds burst and can never be admitted: " +
+        event.weight.to_string(),
+      )
+    }
+    let admission = limiter.check(event.at, event.weight)
+    if admission.allowed {
+      allowed += 1
+      allowed_weight += event.weight
+    }
+    decisions.push(decision_value(event, admission))
+  }
+  record([
+    ("algorithm", String("leaky_bucket")),
+    ("rate", Number(rate)),
+    ("burst", Number(capacity)),
+    ("decisions", Array(decisions)),
+    ("events", Number(events.length().to_double())),
+    ("allowed", Number(allowed.to_double())),
+    ("denied", Number((events.length() - allowed).to_double())),
+    ("allowed_weight", Number(allowed_weight)),
   ])
 }

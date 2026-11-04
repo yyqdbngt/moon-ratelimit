@@ -50,6 +50,21 @@ def gcra(events, rate, burst):
             out.append((False, (weight - tokens) / rate, tokens))
     return out
 
+def leaky_bucket(events, rate, burst):
+    level, last, out = 0.0, 0.0, []
+    for at, weight in events:
+        elapsed = at - last
+        if elapsed > 0.0:
+            level = max(0.0, level - elapsed * rate)
+            last = at
+        if level + weight <= burst:
+            level += weight
+            out.append((True, None, burst - level))
+        else:
+            overflow = level + weight - burst
+            out.append((False, overflow / rate, burst - level))
+    return out
+
 def fixed_window(events, limit, window):
     index, count, out = -1, 0, []
     for at, weight in events:
@@ -147,6 +162,8 @@ def main():
                 compare('fixture', token_bucket(events, request['rate'], request['burst']), report['decisions'])
             elif algorithm == 'gcra':
                 compare('fixture', gcra(events, request['rate'], request['burst']), report['decisions'])
+            elif algorithm == 'leaky_bucket':
+                compare('fixture', leaky_bucket(events, request['rate'], request['burst']), report['decisions'])
             elif algorithm == 'fixed_window':
                 compare('fixture', fixed_window(events, int(request['limit']), request['window_seconds']), report['decisions'])
             elif algorithm == 'sliding_window':

@@ -300,5 +300,54 @@
       "allowed": 2,
       "denied": 1
     }
+  },
+  {
+    "name": "leaky bucket fill and drain",
+    "request": {
+      "algorithm": "leaky_bucket",
+      "rate": 1,
+      "burst": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 3
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 3,
+      "denied": 1
+    }
+  },
+  {
+    "name": "leaky bucket duality",
+    "request": {
+      "algorithm": "leaky_bucket",
+      "rate": 1,
+      "burst": 1,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 2
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2,
+      "denied": 1
+    }
   }
 ]
