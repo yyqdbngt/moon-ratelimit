@@ -580,5 +580,20 @@
       "free": 5,
       "capacity": 5
     }
+  },
+  {
+    "name": "bulk weight one count three",
+    "request": {
+      "operation": "bulk",
+      "rate": 2,
+      "burst": 3,
+      "at": 0,
+      "weight": 1,
+      "count": 3
+    },
+    "expected": {
+      "admitted": 3,
+      "retry_after": null
+    }
   }
 ]
