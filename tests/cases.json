@@ -610,5 +610,30 @@
       "admitted": 2,
       "denied": 3
     }
+  },
+  {
+    "name": "bucket rate point five",
+    "request": {
+      "algorithm": "token_bucket",
+      "rate": 0.5,
+      "burst": 1,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 2
+        },
+        {
+          "at": 3
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 4
+    }
   }
 ]
