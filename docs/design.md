@@ -121,3 +121,7 @@ Three buckets (token, GCRA, leaky) and two windows (fixed, sliding) cover the st
 ## Retry_after precision
 
 retry_after names the exact second a same-weight request fits. For the token bucket it is (weight - tokens) / rate; for GCRA it is the same formula via the tat invariant; for the leaky bucket it is overflow / rate; for the fixed window it is the time to the next boundary.
+
+## Choice guide
+
+Use the token bucket when you want burst tolerance and a steady refill. Use GCRA when you want the same semantics with one state variable. Use the leaky bucket when you want the queue-side view. Use the sliding window when boundary straddles matter; the fixed window when they do not and two integers of memory is all you can afford.
