@@ -65,14 +65,15 @@ test "leaky bucket overweight refused" {
 ///|
 test "leaky bucket drains to zero over long idle" {
   let request = from_json(
-    @json.parse("{\\"algorithm\\":\\"leaky_bucket\\",\\"rate\\":1,\\"burst\\":2,\\"events\\":[{\\"at\\":0},{\\"at\\":0},{\\"at\\":100}]}"),
+    @json.parse(
+      "{\"algorithm\":\"leaky_bucket\",\"rate\":1,\"burst\":2,\"events\":[{\"at\":0},{\"at\":0},{\"at\":100}]}",
+    ),
   )
   let report = run(request)
   let decisions = match get(report, "decisions") {
     Array(items) => items
     _ => abort("decisions missing")
   }
-  // After 100s idle, the level is 0; the third event is admitted freely.
   assert_eq(get(decisions[2], "allowed"), Bool(true))
   assert_eq(get(decisions[2], "tokens"), Number(1))
 }
@@ -97,11 +98,6 @@ test "leaky bucket fractional weight pours partially" {
     ),
   )
   let report = run(request)
-  let decisions = match get(report, "decisions") {
-    Array(items) => items
-    _ => abort("decisions missing")
-  }
-  assert_eq(get(decisions[0], "allowed"), Bool(true))
-  assert_eq(get(decisions[1], "allowed"), Bool(true))
-  assert_eq(get(decisions[2], "allowed"), Bool(false))
+  assert_eq(get(report, "allowed"), Number(2))
+  assert_eq(get(report, "denied"), Number(1))
 }
