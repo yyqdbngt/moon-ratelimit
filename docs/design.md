@@ -133,3 +133,7 @@ A limit request costs O(events) time and O(1) memory per algorithm state. The sl
 ## Integration surface
 
 The library boundary is execute(Json) / run(Value). The CLI reads one JSON request from a file or stdin (16 MiB cap) and prints one JSON result. Errors are one {"error": "..."} object with exit 1; usage mistakes exit 2.
+
+## Future work
+
+Extending bulk to the leaky bucket and windows; a stateful state operation that tracks prior admissions; an adaptive-rate variant that adjusts the rate from feedback; and a session identifier for multi-limiter composition.
