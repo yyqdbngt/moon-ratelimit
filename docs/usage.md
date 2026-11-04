@@ -97,3 +97,10 @@ Returns `admitted` (floor of capacity/weight, capped at count), `denied`,
 `retry_after` (seconds until the next admission; null when all admitted) and
 `remaining_tokens`. `weight` must not exceed `burst`; `count` is 1..1000.
 
+## leaky_bucket
+
+The queue-side dual of the token bucket: capacity units of queue draining at `rate` per second. An event pours `weight` units in; denied when it would overflow.
+
+```json
+{"algorithm": "leaky_bucket", "rate": 1, "burst": 2, "events": [{"at": 0}, {"at": 0}, {"at": 3}]}
+```
