@@ -77,3 +77,7 @@ The seeded SplitMix64 reproduces the same jitter table bit for bit from the seed
 ## Cross-backend agreement
 
 The library compiles for js, wasm, wasm-gc and native. Serializer tests pin the exact number spellings and escapes so a report written on one backend parses identically on another.
+
+## Validation contract
+
+Every request field is validated before any computation: unknown fields are rejected by name, parameters out of range are refused with the boundary stated, and events must be nondecreasing in time.
