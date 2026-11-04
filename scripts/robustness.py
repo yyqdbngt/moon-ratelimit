@@ -7,7 +7,7 @@ CLI = ROOT / '_build/js/debug/build/cmd/main/main.js'
 CASES = [
     ('unknown operation', {'operation': 'nope'}),
     ('limit missing events', {'operation': 'limit'}),
-    ('limit wrong algorithm', {'operation': 'limit', 'algorithm': 'leaky_bucket',
+    ('limit wrong algorithm', {'operation': 'limit', 'algorithm': 'leaky_bucket2',
       'rate': 1, 'events': [{'at': 0}]}),
     ('rate zero', {'operation': 'limit', 'algorithm': 'token_bucket',
       'rate': 0, 'burst': 1, 'events': [{'at': 0}]}),
@@ -40,6 +40,11 @@ CASES = [
       'at': 0, 'weight': 2, 'count': 1}),
     ('bulk non-token-bucket', {'operation': 'bulk', 'algorithm': 'gcra',
       'rate': 1, 'burst': 5, 'at': 0, 'count': 1}),
+    ('leaky_bucket unknown kind', {'operation': 'limit', 'algorithm': 'leaky_bucket',
+      'rate': 1, 'burst': 1, 'events': [{'id': 'a', 'client': 'a', 'at': 1,
+        'input': {'type': 'flood'}}]}),
+    ('leaky_bucket overweight', {'operation': 'limit', 'algorithm': 'leaky_bucket',
+      'rate': 1, 'burst': 1, 'events': [{'at': 0, 'weight': 2}]}),
     ('unknown request field', {'operation': 'limit', 'wat': 1, 'events': []}),
     ('event unknown field', {'operation': 'limit', 'rate': 1, 'burst': 1,
       'events': [{'at': 0, 'wat': 1}]}),
@@ -48,12 +53,7 @@ CASES = [
 failures = []
 for label, request in CASES:
     result = subprocess.run(
-        ['node', str(CLI), '-'    ('leaky_bucket unknown kind', {'operation': 'limit', 'algorithm': 'leaky_bucket',
-      'rate': 1, 'burst': 1, 'events': [{'id': 'a', 'client': 'a', 'at': 1,
-        'input': {'type': 'flood'}}]}),
-    ('leaky_bucket fractional weight', {'operation': 'limit', 'algorithm': 'leaky_bucket',
-      'rate': 1, 'burst': 1, 'events': [{'at': 0, 'weight': 0.5}]}),
-],
+        ['node', str(CLI), '-'],
         input=json.dumps(request), capture_output=True, text=True,
         encoding='utf-8', timeout=20)
     if result.returncode != 1:
