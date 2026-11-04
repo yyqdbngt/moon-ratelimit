@@ -595,5 +595,20 @@
       "admitted": 3,
       "retry_after": null
     }
+  },
+  {
+    "name": "bulk weight two count five",
+    "request": {
+      "operation": "bulk",
+      "rate": 1,
+      "burst": 5,
+      "at": 0,
+      "weight": 2,
+      "count": 5
+    },
+    "expected": {
+      "admitted": 2,
+      "denied": 3
+    }
   }
 ]
