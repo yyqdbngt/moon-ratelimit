@@ -374,5 +374,33 @@
     "expected": {
       "allowed": 4
     }
+  },
+  {
+    "name": "gcra burst two serial",
+    "request": {
+      "algorithm": "gcra",
+      "rate": 1,
+      "burst": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 2
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 5
+    }
   }
 ]
