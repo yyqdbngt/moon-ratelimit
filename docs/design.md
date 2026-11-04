@@ -69,3 +69,7 @@ The Python oracle shares no code with the MoonBit. GCRA and the leaky bucket are
 ## Determinism
 
 Every operation is a pure function of (state, now, weight). Time is injected, never read; the same request always produces the same answer on every backend.
+
+## Backoff table determinism
+
+The seeded SplitMix64 reproduces the same jitter table bit for bit from the seed in the request. Seeds are 0..2^53-1; the generator is named as non-cryptographic wherever it appears.
