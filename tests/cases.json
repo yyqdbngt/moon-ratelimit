@@ -552,5 +552,19 @@
       "attempts": 4,
       "seed": 1
     }
+  },
+  {
+    "name": "state gcra",
+    "request": {
+      "operation": "state",
+      "algorithm": "gcra",
+      "rate": 3,
+      "burst": 7,
+      "at": 5
+    },
+    "expected": {
+      "free": 7,
+      "capacity": 7
+    }
   }
 ]
