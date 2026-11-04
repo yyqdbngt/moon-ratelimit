@@ -109,3 +109,7 @@ The library provides both a limiter (retry_after in seconds) and a backoff (dela
 ## Error contract
 
 Every refusal names the field and the violated constraint: 'rate must be positive', 'event weight exceeds burst and can never be admitted: 2'. Callers parse the error string, not a code.
+
+## Testing the tests
+
+The oracle itself is tested: the GCRA and token-bucket implementations are run side by side on random schedules to verify their bitwise equivalence, catching oracle bugs as well as engine bugs.
