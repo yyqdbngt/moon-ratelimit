@@ -41,3 +41,7 @@ fixtures (through the compiled binary), an independent Python oracle (same
 algorithms separately written), a malformed-input sweep, and machine-checked
 statistics. The oracle's GCRA and leaky-bucket implementations share no code
 with the MoonBit; agreement on random schedules is the check.
+
+## Rate parameter space
+
+The rate parameter is any positive finite double. Rates below one (fractional tokens per second) are exercised by the fuzz suite; the bucket and GCRA both compute in doubles and agree bitwise on dyadic rates.
