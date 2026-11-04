@@ -53,3 +53,7 @@ The sliding window holds the half-open interval (now - window, now]: an event ex
 ## Backoff jitter contracts
 
 Full jitter draws anywhere in [0, pure]; equal jitter keeps half the exponential and draws the rest; decorrelated redraws between base and 3x the previous sleep. All shapes share the same geometric growth and cap; only the draw differs.
+
+## Decision reporting
+
+Every limit decision reports at, allowed, retry_after and the free capacity (tokens for buckets, remaining for windows). retry_after is null when the decision is to allow and the exact seconds until a same-weight request would fit otherwise.
