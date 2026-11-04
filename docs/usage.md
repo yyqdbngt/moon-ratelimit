@@ -108,3 +108,7 @@ The queue-side dual of the token bucket: capacity units of queue draining at `ra
 ## All algorithms
 
 Five algorithms share one request shape: token_bucket, gcra, leaky_bucket, fixed_window and sliding_window. Each takes its own parameters (rate and burst for the buckets, limit and window_seconds for the windows) and returns per-event decisions with allowed, retry_after and free capacity.
+
+## Validation summary
+
+Rate and burst must be positive; limit must be a positive whole number; window_seconds must be positive; weights are continuous on buckets and whole on windows; events must be nondecreasing in time; and every unknown field is rejected by name.
