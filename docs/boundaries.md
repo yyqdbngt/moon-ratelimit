@@ -34,3 +34,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - The CLI reads one JSON request from a file or stdin (16 MiB cap). Errors are one JSON object on stdout with exit 1; usage mistakes exit 2. The library boundary is execute(Json)/run(Value).
 
 - Weight is continuous on the buckets (fractional weights are legal) and must be a whole number on the windows; the refusal names the offending weight.
+
+- Events must be nondecreasing in time; equal instants are legal (the same-instant tests pin the semantics). Going backwards is refused.
