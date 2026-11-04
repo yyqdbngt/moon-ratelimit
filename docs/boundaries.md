@@ -30,3 +30,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - The state and bulk operations describe a fresh limiter and do not model prior admissions; callers wanting stateful introspection should replay the full schedule through limit.
 
 - All algorithms compute in doubles. On dyadic parameters (integer capacities, rates that are exact powers of two, eighth-second intervals) every path is exact. Non-dyadic values may differ in the last ulp.
+
+- The CLI reads one JSON request from a file or stdin (16 MiB cap). Errors are one JSON object on stdout with exit 1; usage mistakes exit 2. The library boundary is execute(Json)/run(Value).
