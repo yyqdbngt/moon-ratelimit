@@ -42,3 +42,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - The state operation reports a fresh limiter's capacity. A stateful variant that tracks prior admissions would require either a session identifier or replaying the full schedule.
 
 - Weight must not exceed burst on the buckets and limit on the windows; a weight that can never be admitted is refused up front rather than answered with an infinite retry.
+
+- The CLI prints one JSON object per request; errors are {"error": "..."} with exit 1, usage mistakes exit 2. No partial output is produced before the first byte of the result.
