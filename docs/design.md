@@ -117,3 +117,7 @@ The oracle itself is tested: the GCRA and token-bucket implementations are run s
 ## Algorithm family overview
 
 Three buckets (token, GCRA, leaky) and two windows (fixed, sliding) cover the standard admission-control shapes. All five share the injected-time contract: a replay is deterministic on every backend.
+
+## Retry_after precision
+
+retry_after names the exact second a same-weight request fits. For the token bucket it is (weight - tokens) / rate; for GCRA it is the same formula via the tat invariant; for the leaky bucket it is overflow / rate; for the fixed window it is the time to the next boundary.
