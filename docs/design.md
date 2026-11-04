@@ -113,3 +113,7 @@ Every refusal names the field and the violated constraint: 'rate must be positiv
 ## Testing the tests
 
 The oracle itself is tested: the GCRA and token-bucket implementations are run side by side on random schedules to verify their bitwise equivalence, catching oracle bugs as well as engine bugs.
+
+## Algorithm family overview
+
+Three buckets (token, GCRA, leaky) and two windows (fixed, sliding) cover the standard admission-control shapes. All five share the injected-time contract: a replay is deterministic on every backend.
