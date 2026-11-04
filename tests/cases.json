@@ -477,5 +477,24 @@
     "expected": {
       "allowed": 4
     }
+  },
+  {
+    "name": "sliding window boundary",
+    "request": {
+      "algorithm": "sliding_window",
+      "limit": 1,
+      "window_seconds": 1,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 1
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2
+    }
   }
 ]
