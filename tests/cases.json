@@ -566,5 +566,19 @@
       "free": 7,
       "capacity": 7
     }
+  },
+  {
+    "name": "state fixed window",
+    "request": {
+      "operation": "state",
+      "algorithm": "fixed_window",
+      "limit": 5,
+      "window_seconds": 2,
+      "at": 3
+    },
+    "expected": {
+      "free": 5,
+      "capacity": 5
+    }
   }
 ]
