@@ -89,3 +89,7 @@ The decision field reports tokens (buckets) or remaining (windows): the free cap
 ## GCRA formulation
 
 The theoretical arrival time (tat) form is used because it makes the equivalence with the token bucket an algebraic identity rather than a hope: tokens(now) = capacity - rate * max(0, tat - now).
+
+## Testing strategy
+
+Edge tests pin exact arithmetic; the oracle re-derives every answer from the request alone on random schedules; the robustness sweep feeds malformed inputs; and the statistics are machine-recounted.
