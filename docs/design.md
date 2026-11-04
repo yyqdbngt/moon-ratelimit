@@ -65,3 +65,7 @@ bulk admits floor(capacity / weight) events in one step, capped at the requested
 ## Oracle independence
 
 The Python oracle shares no code with the MoonBit. GCRA and the leaky bucket are separately implemented; agreement on 40 random schedules per iteration is the check. The oracle also verifies bit-exact jitter tables by reproducing SplitMix64 with exact 64-bit masking.
+
+## Determinism
+
+Every operation is a pure function of (state, now, weight). Time is injected, never read; the same request always produces the same answer on every backend.
