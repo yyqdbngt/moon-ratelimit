@@ -48,3 +48,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - Events must arrive in nondecreasing order; the CLI refuses a schedule that goes backwards. Equal instants are legal and exercise the same-instant semantics.
 
 - The oracle and the engine agree on all fixtures and 40 random schedules per iteration. Agreement is checked by exact decision comparison, not by summary statistics.
+
+- The verify.sh ladder and the CI integration job run the same steps; a script added to one but not the other is a drift the workflow check in the sibling project catches.
