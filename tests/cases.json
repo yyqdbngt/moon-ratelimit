@@ -516,5 +516,17 @@
       "allowed": 1,
       "denied": 1
     }
+  },
+  {
+    "name": "backoff decorrelated seed 42",
+    "request": {
+      "operation": "backoff",
+      "base_ms": 100,
+      "multiplier": 2,
+      "max_ms": 5000,
+      "jitter": "decorrelated",
+      "attempts": 8,
+      "seed": 42
+    }
   }
 ]
