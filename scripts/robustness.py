@@ -48,7 +48,12 @@ CASES = [
 failures = []
 for label, request in CASES:
     result = subprocess.run(
-        ['node', str(CLI), '-'],
+        ['node', str(CLI), '-'    ('leaky_bucket unknown kind', {'operation': 'limit', 'algorithm': 'leaky_bucket',
+      'rate': 1, 'burst': 1, 'events': [{'id': 'a', 'client': 'a', 'at': 1,
+        'input': {'type': 'flood'}}]}),
+    ('leaky_bucket fractional weight', {'operation': 'limit', 'algorithm': 'leaky_bucket',
+      'rate': 1, 'burst': 1, 'events': [{'at': 0, 'weight': 0.5}]}),
+],
         input=json.dumps(request), capture_output=True, text=True,
         encoding='utf-8', timeout=20)
     if result.returncode != 1:

@@ -29,3 +29,7 @@ reports free capacity at an instant without admitting; on a fresh limiter
 the answer is always the full capacity. Both share the validation contract
 with limit; bulk currently supports only the token bucket.
 
+
+## The queue-side dual
+
+The leaky bucket is the token bucket seen from the queue side: both share the same rate and capacity. The token bucket admits when enough tokens have accumulated; the leaky bucket admits when the queue can absorb the pour. The duality test runs the same schedule through both and asserts identical admission counts.

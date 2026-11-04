@@ -197,6 +197,9 @@ def main():
         report = run(request)
         compare(f'fuzz-bucket-{iteration}', token_bucket(events, rate, burst), report['decisions'])
         compare(f'fuzz-gcra-{iteration}', gcra(events, rate, burst), report['decisions'])
+        lrequest = {'algorithm': 'leaky_bucket', 'rate': rate, 'burst': burst,
+            'events': [{'at': t, 'weight': w} for t, w in events]}
+        compare(f'fuzz-leaky-{iteration}', leaky_bucket(events, rate, burst), run(lrequest)['decisions'])
         limit, window = rng.choice([2, 3, 5]), rng.choice([1.0, 2.0])
         if max(w for _, w in events) <= limit:
             wrequest = {'algorithm': 'sliding_window', 'limit': limit, 'window_seconds': window,
