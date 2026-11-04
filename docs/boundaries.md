@@ -56,3 +56,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - The leaky bucket and token bucket are duals: they produce identical admission decisions with the same parameters, but report free capacity from opposite sides (remaining tokens vs. remaining queue space).
 
 - The fixed window's boundary flaw (up to 2x the limit through a straddle) is demonstrated by test, not hidden; the sliding window is the bounded-memory-exact alternative.
+
+- No algorithm allocates proportional to the time span; the sliding window's memory grows with the events inside one window.
