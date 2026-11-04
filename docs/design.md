@@ -57,3 +57,7 @@ Full jitter draws anywhere in [0, pure]; equal jitter keeps half the exponential
 ## Decision reporting
 
 Every limit decision reports at, allowed, retry_after and the free capacity (tokens for buckets, remaining for windows). retry_after is null when the decision is to allow and the exact seconds until a same-weight request would fit otherwise.
+
+## Bulk arithmetic
+
+bulk admits floor(capacity / weight) events in one step, capped at the requested count. The remainder gets retry_after = (weight - remaining) / rate. The arithmetic is exact on dyadic parameters.
