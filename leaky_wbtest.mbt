@@ -61,3 +61,47 @@ test "leaky bucket overweight refused" {
     String("event weight exceeds burst and can never be admitted: 2"),
   )
 }
+
+///|
+test "leaky bucket drains to zero over long idle" {
+  let request = from_json(
+    @json.parse("{\\"algorithm\\":\\"leaky_bucket\\",\\"rate\\":1,\\"burst\\":2,\\"events\\":[{\\"at\\":0},{\\"at\\":0},{\\"at\\":100}]}"),
+  )
+  let report = run(request)
+  let decisions = match get(report, "decisions") {
+    Array(items) => items
+    _ => abort("decisions missing")
+  }
+  // After 100s idle, the level is 0; the third event is admitted freely.
+  assert_eq(get(decisions[2], "allowed"), Bool(true))
+  assert_eq(get(decisions[2], "tokens"), Number(1))
+}
+
+///|
+test "leaky bucket weight-equals-capacity admits once" {
+  let request = from_json(
+    @json.parse(
+      "{\"algorithm\":\"leaky_bucket\",\"rate\":1,\"burst\":2,\"events\":[{\"at\":0,\"weight\":2},{\"at\":0,\"weight\":2}]}",
+    ),
+  )
+  let report = run(request)
+  assert_eq(get(report, "allowed"), Number(1))
+  assert_eq(get(report, "denied"), Number(1))
+}
+
+///|
+test "leaky bucket fractional weight pours partially" {
+  let request = from_json(
+    @json.parse(
+      "{\"algorithm\":\"leaky_bucket\",\"rate\":1,\"burst\":1,\"events\":[{\"at\":0,\"weight\":0.5},{\"at\":0,\"weight\":0.5},{\"at\":0,\"weight\":0.5}]}",
+    ),
+  )
+  let report = run(request)
+  let decisions = match get(report, "decisions") {
+    Array(items) => items
+    _ => abort("decisions missing")
+  }
+  assert_eq(get(decisions[0], "allowed"), Bool(true))
+  assert_eq(get(decisions[1], "allowed"), Bool(true))
+  assert_eq(get(decisions[2], "allowed"), Bool(false))
+}
