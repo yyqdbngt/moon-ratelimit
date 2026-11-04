@@ -8,7 +8,7 @@ Snapshot date: 2026-10-31. Module version: 0.1.0.
 | Nonblank, non-comment production lines | 868 |
 | MoonBit test declarations | 42 |
 | CLI fixture cases | 35 |
-| Pinned examples | 7 |
+| Pinned examples | 8 |
 
 Production counts the algorithm and boundary files only; tests,
 scripts, examples and documentation are excluded. Recount with
