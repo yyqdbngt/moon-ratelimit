@@ -39,7 +39,8 @@ fn parse_events(raw : Array[Value]) -> Array[Event] raise InputError {
 /// routing (no operation field) is observable as a limit validation error.
 fn limit_with(request : Value) -> Value raise InputError {
   fields_only(request, [
-    "operation", "algorithm", "rate", "burst", "limit", "window_seconds", "events",
+    "operation", "algorithm", "rate", "burst", "limit", "window_seconds", "slices",
+    "events",
   ])
   let events = parse_events(arr(required(request, "events")))
   let algorithm = optional_str(get(request, "algorithm"), "token_bucket")
@@ -49,6 +50,7 @@ fn limit_with(request : Value) -> Value raise InputError {
     "fixed_window" => limit_fixed_window(request, events)
     "sliding_window" => limit_sliding_window(request, events)
     "leaky_bucket" => limit_leaky_bucket(request, events)
+    "sliding_window_counter" => limit_sliding_window_counter(request, events)
     _ => raise InputError("unsupported limiter algorithm: " + algorithm)
   }
 }
@@ -438,4 +440,39 @@ fn limit_leaky_bucket(
     ("denied", Number((events.length() - allowed).to_double())),
     ("allowed_weight", Number(allowed_weight)),
   ])
+}
+
+///|
+fn limit_sliding_window_counter(
+  request : Value,
+  events : Array[Event],
+) -> Value raise InputError {
+  let limit = read_window_limit(request)
+  let window = read_window_seconds(request)
+  let slices = optional_num(get(request, "slices"), 10.0)
+  if slices < 2.0 || slices.floor() != slices || slices > 1000.0 {
+    raise InputError("slices must be a whole number 2..1000")
+  }
+  let weights : Array[Int32] = []
+  for event in events {
+    weights.push(integer_weight(event))
+    if event.weight > limit.to_double() {
+      raise InputError(
+        "event weight exceeds limit and can never be admitted: " +
+        event.weight.to_string(),
+      )
+    }
+  }
+  let limiter = sliding_window_counter(limit, window, slices.to_int())
+  let report = replay_window(
+    events,
+    weights,
+    (now, weight) => limiter.check(now, weight),
+    "sliding_window_counter",
+  )
+  let fields = obj(report).copy()
+  fields["limit"] = Number(limit.to_double())
+  fields["window_seconds"] = Number(window)
+  fields["slices"] = Number(slices)
+  Object(fields)
 }

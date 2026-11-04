@@ -65,6 +65,28 @@ def leaky_bucket(events, rate, burst):
             out.append((False, overflow / rate, burst - level))
     return out
 
+def sliding_window_counter(events, limit, window, slices):
+    # The trailing window is approximated by the `slices` sub-windows
+    # ending at the current one. `stored` maps sub-window index to count
+    # and is pruned to that range, so an index that left the range is
+    # gone for good - the ring-slot bookkeeping of the implementation,
+    # written without a ring.
+    slice_width = window / slices
+    stored = {}
+    out = []
+    for at, weight in events:
+        current = int(at / slice_width // 1)
+        first = current - slices + 1
+        for idx in [i for i in stored if i < first]:
+            del stored[idx]
+        held = sum(stored.get(i, 0) for i in range(max(first, 0), current + 1))
+        if held + weight <= limit:
+            stored[current] = stored.get(current, 0) + weight
+            out.append((True, None, limit - held - weight))
+        else:
+            out.append((False, (current + 1) * slice_width - at, limit - held))
+    return out
+
 def fixed_window(events, limit, window):
     index, count, out = -1, 0, []
     for at, weight in events:
@@ -162,6 +184,9 @@ def main():
                 compare('fixture', token_bucket(events, request['rate'], request['burst']), report['decisions'])
             elif algorithm == 'gcra':
                 compare('fixture', gcra(events, request['rate'], request['burst']), report['decisions'])
+            elif algorithm == 'sliding_window_counter':
+                slices = int(request.get('slices', 10))
+                compare('fixture', sliding_window_counter(events, int(request['limit']), request['window_seconds'], slices), report['decisions'])
             elif algorithm == 'leaky_bucket':
                 compare('fixture', leaky_bucket(events, request['rate'], request['burst']), report['decisions'])
             elif algorithm == 'fixed_window':
@@ -207,6 +232,13 @@ def main():
             compare(f'fuzz-sliding-{iteration}', sliding_window(events, limit, window), run(wrequest)['decisions'])
             wrequest['algorithm'] = 'fixed_window'
             compare(f'fuzz-fixed-{iteration}', fixed_window(events, limit, window), run(wrequest)['decisions'])
+            # Slices are powers of two so every sub-window boundary in the
+            # schedule is exactly representable on all four backends.
+            slices = rng.choice([2, 4, 8])
+            wrequest['algorithm'] = 'sliding_window_counter'
+            wrequest['slices'] = slices
+            compare(f'fuzz-swcounter-{iteration}',
+                sliding_window_counter(events, limit, window, slices), run(wrequest)['decisions'])
         checked += 1
     for seed in (0, 1, 20261031, 9007199254740991):
         for jitter in ('full', 'equal', 'decorrelated'):

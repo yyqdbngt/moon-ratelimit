@@ -1,0 +1,10 @@
+{
+  "algorithm": "token_bucket",
+  "at": 0,
+  "weight": 2,
+  "count": 4,
+  "admitted": 2,
+  "denied": 2,
+  "retry_after": 1,
+  "remaining_tokens": 1
+}

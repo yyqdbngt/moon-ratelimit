@@ -105,10 +105,26 @@ The queue-side dual of the token bucket: capacity units of queue draining at `ra
 {"algorithm": "leaky_bucket", "rate": 1, "burst": 2, "events": [{"at": 0}, {"at": 0}, {"at": 3}]}
 ```
 
+## sliding_window_counter
+
+The bounded-memory approximation of the exact sliding window: the window is
+divided into `slices` sub-windows (2..1000, default 10) kept as ring slots.
+Admission sums the `slices` sub-windows ending at the current one, which
+covers (now - window, now] with an error of at most one sub-window's count.
+Each slot records the sub-window it was last written for, so a reused slot
+reads as zero instead of leaking a count from one full ring earlier; there is
+no aging pass. A refusal's retry_after is the distance to the next sub-window
+boundary, the earliest moment the summed range can shift.
+
+```json
+{"algorithm": "sliding_window_counter", "limit": 2, "window_seconds": 1, "slices": 4,
+ "events": [{"at": 0}, {"at": 0}, {"at": 0.3}]}
+```
+
 ## All algorithms
 
-Five algorithms share one request shape: token_bucket, gcra, leaky_bucket, fixed_window and sliding_window. Each takes its own parameters (rate and burst for the buckets, limit and window_seconds for the windows) and returns per-event decisions with allowed, retry_after and free capacity.
+Six algorithms share one request shape: token_bucket, gcra, leaky_bucket, fixed_window, sliding_window and sliding_window_counter. Each takes its own parameters (rate and burst for the buckets, limit and window_seconds for the windows, plus slices for the counter) and returns per-event decisions with allowed, retry_after and free capacity.
 
 ## Validation summary
 
-Rate and burst must be positive; limit must be a positive whole number; window_seconds must be positive; weights are continuous on buckets and whole on windows; events must be nondecreasing in time; and every unknown field is rejected by name.
+Rate and burst must be positive; limit must be a positive whole number; window_seconds must be positive; slices must be a whole number 2..1000; weights are continuous on buckets and whole on windows; events must be nondecreasing in time; and every unknown field is rejected by name.

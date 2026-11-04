@@ -1,0 +1,35 @@
+{
+  "algorithm": "sliding_window",
+  "events": 4,
+  "allowed": 2,
+  "denied": 2,
+  "allowed_weight": 2,
+  "decisions": [
+    {
+      "at": 0.95,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 1
+    },
+    {
+      "at": 0.99,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 0
+    },
+    {
+      "at": 1.01,
+      "allowed": false,
+      "retry_after": 0.94,
+      "remaining": 0
+    },
+    {
+      "at": 1.05,
+      "allowed": false,
+      "retry_after": 0.8999999999999999,
+      "remaining": 0
+    }
+  ],
+  "limit": 2,
+  "window_seconds": 1
+}

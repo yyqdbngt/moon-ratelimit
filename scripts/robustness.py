@@ -60,6 +60,15 @@ CASES = [
     ('unknown request field', {'operation': 'limit', 'wat': 1, 'events': []}),
     ('event unknown field', {'operation': 'limit', 'rate': 1, 'burst': 1,
       'events': [{'at': 0, 'wat': 1}]}),
+    ('sw counter slices one', {'operation': 'limit', 'algorithm': 'sliding_window_counter',
+      'limit': 2, 'window_seconds': 1, 'slices': 1, 'events': [{'at': 0}]}),
+    ('sw counter slices fractional', {'operation': 'limit', 'algorithm': 'sliding_window_counter',
+      'limit': 2, 'window_seconds': 1, 'slices': 2.5, 'events': [{'at': 0}]}),
+    ('sw counter slices over bound', {'operation': 'limit', 'algorithm': 'sliding_window_counter',
+      'limit': 2, 'window_seconds': 1, 'slices': 1001, 'events': [{'at': 0}]}),
+    ('sw counter overweight', {'operation': 'limit', 'algorithm': 'sliding_window_counter',
+      'limit': 2, 'window_seconds': 1, 'slices': 4,
+      'events': [{'at': 0, 'weight': 3}]}),
 ]
 
 failures = []

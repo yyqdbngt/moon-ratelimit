@@ -12,7 +12,11 @@ Token buckets with continuous refill and exact retry-after; GCRA stated as a
 theoretical-arrival-time invariant and proven equivalent to the bucket
 bitwise on dyadic schedules; fixed windows (with their boundary burst
 demonstrated, not hidden) and exact sliding windows over (now - window, now];
-jittered exponential backoff and a leaky bucket (the queue-side dual) in the three AWS shapes over a seeded
+a bounded-memory sliding window counter that approximates the exact window
+from `slices` ring slots, where each slot records the sub-window it was last
+written for so a reused slot cannot leak a count from one full ring earlier
+(no aging pass, no aliasing), with refusal retry-after pointing at the next
+sub-window boundary; jittered exponential backoff and a leaky bucket (the queue-side dual) in the three AWS shapes over a seeded
 SplitMix64, reproducible bit for bit. Every decision is a pure function of
 (state, now, weight): time is injected, never read.
 

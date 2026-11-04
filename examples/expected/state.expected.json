@@ -1,0 +1,6 @@
+{
+  "algorithm": "token_bucket",
+  "at": 10,
+  "free": 5,
+  "capacity": 5
+}

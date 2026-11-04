@@ -400,7 +400,8 @@
       ]
     },
     "expected": {
-      "allowed": 5
+      "allowed": 4,
+      "denied": 1
     }
   },
   {
@@ -527,6 +528,18 @@
       "jitter": "decorrelated",
       "attempts": 8,
       "seed": 42
+    },
+    "expected": {
+      "delays_ms": [
+        248.31297575436466,
+        203.13243724026074,
+        241.91866679433912,
+        315.3794061407964,
+        132.1787790549471,
+        357.4611736427842,
+        312.37361125089274,
+        770.2256241633794
+      ]
     }
   },
   {
@@ -539,6 +552,15 @@
       "jitter": "equal",
       "attempts": 5,
       "seed": 0
+    },
+    "expected": {
+      "delays_ms": [
+        47.08277020534106,
+        107.36459977863825,
+        230.9475986083345,
+        1330.3453352538343,
+        1659.5200373508187
+      ]
     }
   },
   {
@@ -551,6 +573,14 @@
       "jitter": "full",
       "attempts": 4,
       "seed": 1
+    },
+    "expected": {
+      "delays_ms": [
+        5.665615751722809,
+        14.915635145254022,
+        38.84011014347185,
+        35.548737364461765
+      ]
     }
   },
   {
@@ -633,7 +663,8 @@
       ]
     },
     "expected": {
-      "allowed": 4
+      "allowed": 2,
+      "denied": 2
     }
   },
   {
@@ -690,6 +721,59 @@
     },
     "expected": {
       "allowed": 3
+    }
+  },
+  {
+    "name": "sw counter admits up to limit",
+    "request": {
+      "algorithm": "sliding_window_counter",
+      "limit": 2,
+      "window_seconds": 1,
+      "slices": 4,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0.3
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2,
+      "denied": 2
+    }
+  },
+  {
+    "name": "sw counter aged-out slices",
+    "request": {
+      "algorithm": "sliding_window_counter",
+      "limit": 2,
+      "window_seconds": 1,
+      "slices": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 1
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 4
     }
   }
 ]

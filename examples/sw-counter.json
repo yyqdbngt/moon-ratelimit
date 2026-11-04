@@ -1,0 +1,20 @@
+{
+  "algorithm": "sliding_window_counter",
+  "limit": 2,
+  "window_seconds": 1,
+  "slices": 4,
+  "events": [
+    {
+      "at": 0
+    },
+    {
+      "at": 0
+    },
+    {
+      "at": 0
+    },
+    {
+      "at": 0.3
+    }
+  ]
+}

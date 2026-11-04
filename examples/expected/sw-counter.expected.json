@@ -1,0 +1,36 @@
+{
+  "algorithm": "sliding_window_counter",
+  "events": 4,
+  "allowed": 2,
+  "denied": 2,
+  "allowed_weight": 2,
+  "decisions": [
+    {
+      "at": 0,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 1
+    },
+    {
+      "at": 0,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 0
+    },
+    {
+      "at": 0,
+      "allowed": false,
+      "retry_after": 0.25,
+      "remaining": 0
+    },
+    {
+      "at": 0.3,
+      "allowed": false,
+      "retry_after": 0.2,
+      "remaining": 0
+    }
+  ],
+  "limit": 2,
+  "window_seconds": 1,
+  "slices": 4
+}

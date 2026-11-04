@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 — 2026-11-04
+
+Sixth algorithm: the sliding window counter, a bounded-memory approximation
+of the exact sliding window over `slices` ring slots. Each slot records the
+sub-window it was last written for, so a reused slot reads as zero instead of
+leaking a count from one full ring earlier - no aging pass, no aliasing; a
+white-box regression test replays a schedule that crosses a full ring and a
+refusal's retry_after points at the next sub-window boundary. The Python
+oracle gained a matching implementation plus random dyadic fuzz across the
+slices choices; the malformed-input sweep gained four counter cases (35
+total). The fixture suite was also tightened: every case now carries a pinned
+expected answer (the three seeded backoff cases previously relied on the
+oracle alone), five examples gained pinned answers, and two stale hand-counted
+summaries (bucket rate point five, gcra burst two serial) were corrected to
+what the engine and the independently written oracle both compute.
+
 ## 0.4.0 — 2026-11-04
 
 Registry version: 0.4.0. Five algorithms (token bucket, GCRA, leaky bucket,
