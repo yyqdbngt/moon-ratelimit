@@ -248,5 +248,57 @@
       "weight": 2,
       "count": 1
     }
+  },
+  {
+    "name": "bucket same-instant events",
+    "request": {
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2,
+      "denied": 2
+    }
+  },
+  {
+    "name": "bucket fractional weight",
+    "request": {
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 1,
+      "events": [
+        {
+          "at": 0,
+          "weight": 0.5
+        },
+        {
+          "at": 0,
+          "weight": 0.5
+        },
+        {
+          "at": 0,
+          "weight": 0.5
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2,
+      "denied": 1
+    }
   }
 ]
