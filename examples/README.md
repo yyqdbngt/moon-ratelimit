@@ -14,3 +14,4 @@ node _build/js/debug/build/cmd/main/main.js examples/<name>.json
 | `backoff.json` | a seeded jitter table that reproduces from its seed |
 | `leaky-bucket.json` | the queue-side dual filling and draining |
 | `bulk.json` | batch admission |
+| `state.json` | free capacity |
