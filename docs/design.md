@@ -129,3 +129,7 @@ Use the token bucket when you want burst tolerance and a steady refill. Use GCRA
 ## Performance expectation
 
 A limit request costs O(events) time and O(1) memory per algorithm state. The sliding window adds O(events-in-window) memory. No algorithm allocates proportional to the time span.
+
+## Integration surface
+
+The library boundary is execute(Json) / run(Value). The CLI reads one JSON request from a file or stdin (16 MiB cap) and prints one JSON result. Errors are one {"error": "..."} object with exit 1; usage mistakes exit 2.
