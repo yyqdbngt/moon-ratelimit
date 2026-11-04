@@ -61,3 +61,7 @@ Every limit decision reports at, allowed, retry_after and the free capacity (tok
 ## Bulk arithmetic
 
 bulk admits floor(capacity / weight) events in one step, capped at the requested count. The remainder gets retry_after = (weight - remaining) / rate. The arithmetic is exact on dyadic parameters.
+
+## Oracle independence
+
+The Python oracle shares no code with the MoonBit. GCRA and the leaky bucket are separately implemented; agreement on 40 random schedules per iteration is the check. The oracle also verifies bit-exact jitter tables by reproducing SplitMix64 with exact 64-bit masking.
