@@ -31,5 +31,20 @@
     }
   ],
   "limit": 2,
-  "window_seconds": 1
+  "window_seconds": 1,
+  "final_state": {
+    "algorithm": "sliding_window",
+    "limit": 2,
+    "window_seconds": 1,
+    "entries": [
+      {
+        "at": 0.95,
+        "weight": 1
+      },
+      {
+        "at": 0.99,
+        "weight": 1
+      }
+    ]
+  }
 }

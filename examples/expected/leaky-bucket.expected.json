@@ -31,5 +31,12 @@
   "events": 4,
   "allowed": 3,
   "denied": 1,
-  "allowed_weight": 3
+  "allowed_weight": 3,
+  "final_state": {
+    "algorithm": "leaky_bucket",
+    "rate": 1,
+    "burst": 2,
+    "level": 1,
+    "last": 3
+  }
 }

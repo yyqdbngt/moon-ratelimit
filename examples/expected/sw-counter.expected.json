@@ -32,5 +32,23 @@
   ],
   "limit": 2,
   "window_seconds": 1,
-  "slices": 4
+  "slices": 4,
+  "final_state": {
+    "algorithm": "sliding_window_counter",
+    "limit": 2,
+    "window_seconds": 1,
+    "slices": 4,
+    "counts": [
+      2,
+      0,
+      0,
+      0
+    ],
+    "origins": [
+      0,
+      -1,
+      -1,
+      -1
+    ]
+  }
 }

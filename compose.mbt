@@ -59,7 +59,10 @@ priv struct ComposeLimiter {
 }
 
 ///|
-fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
+fn parse_compose_limiter(
+  spec : Value,
+  state : Value,
+) -> ComposeLimiter raise InputError {
   fields_only(spec, [
     "algorithm", "rate", "burst", "limit", "window_seconds", "slices",
   ])
@@ -75,7 +78,12 @@ fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
         raise InputError("burst must be positive")
       }
       {
-        limiter: Bucket(token_bucket(rate, capacity)),
+        limiter: Bucket(
+          match state {
+            Null => token_bucket(rate, capacity)
+            _ => token_bucket_from_state(state, rate, capacity)
+          },
+        ),
         name: algorithm,
         cap: capacity,
         cap_kind: "burst",
@@ -92,7 +100,12 @@ fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
         raise InputError("burst must be positive")
       }
       {
-        limiter: Gcra(gcra(rate, capacity)),
+        limiter: Gcra(
+          match state {
+            Null => gcra(rate, capacity)
+            _ => gcra_from_state(state, rate, capacity)
+          },
+        ),
         name: algorithm,
         cap: capacity,
         cap_kind: "burst",
@@ -109,7 +122,12 @@ fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
         raise InputError("burst must be positive")
       }
       {
-        limiter: Leaky(leaky_bucket(rate, capacity)),
+        limiter: Leaky(
+          match state {
+            Null => leaky_bucket(rate, capacity)
+            _ => leaky_bucket_from_state(state, rate, capacity)
+          },
+        ),
         name: algorithm,
         cap: capacity,
         cap_kind: "burst",
@@ -120,7 +138,12 @@ fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
       let limit = read_window_limit(spec)
       let window = read_window_seconds(spec)
       {
-        limiter: Fixed(fixed_window(limit, window)),
+        limiter: Fixed(
+          match state {
+            Null => fixed_window(limit, window)
+            _ => fixed_window_from_state(state, limit, window)
+          },
+        ),
         name: algorithm,
         cap: limit.to_double(),
         cap_kind: "limit",
@@ -131,7 +154,12 @@ fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
       let limit = read_window_limit(spec)
       let window = read_window_seconds(spec)
       {
-        limiter: Sliding(sliding_window(limit, window)),
+        limiter: Sliding(
+          match state {
+            Null => sliding_window(limit, window)
+            _ => sliding_window_from_state(state, limit, window)
+          },
+        ),
         name: algorithm,
         cap: limit.to_double(),
         cap_kind: "limit",
@@ -146,7 +174,18 @@ fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
         raise InputError("slices must be a whole number 2..1000")
       }
       {
-        limiter: Counter(sliding_window_counter(limit, window, slices.to_int())),
+        limiter: Counter(
+          match state {
+            Null => sliding_window_counter(limit, window, slices.to_int())
+            _ =>
+              sliding_window_counter_from_state(
+                state,
+                limit,
+                window,
+                slices.to_int(),
+              )
+          },
+        ),
         name: algorithm,
         cap: limit.to_double(),
         cap_kind: "limit",
@@ -166,15 +205,29 @@ fn parse_compose_limiter(spec : Value) -> ComposeLimiter raise InputError {
 /// the reported remaining capacity is the smallest across limiters (the
 /// most binding one).
 fn compose_with(request : Value) -> Value raise InputError {
-  fields_only(request, ["operation", "limiters", "events"])
+  fields_only(request, ["operation", "limiters", "events", "initial_state"])
   let events = parse_events(arr(required(request, "events")))
   let raw = arr(required(request, "limiters"))
   if raw.length() < 1 || raw.length() > 8 {
     raise InputError("limiters must list 1..8 limiters")
   }
+  // A resumed compose names one state object per limiter, in order.
+  let initial = get(request, "initial_state")
+  let states : Array[Value] = match initial {
+    Null => Array::make(raw.length(), Null)
+    _ => {
+      fields_only(initial, ["algorithm", "limiters"])
+      state_name(initial, "compose")
+      let listed = arr(required(initial, "limiters"))
+      if listed.length() != raw.length() {
+        raise InputError("initial_state limiters must match the request")
+      }
+      listed
+    }
+  }
   let limiters : Array[ComposeLimiter] = []
-  for spec in raw {
-    limiters.push(parse_compose_limiter(spec))
+  for i, spec in raw {
+    limiters.push(parse_compose_limiter(spec, states[i]))
   }
   // Window limiters count events, so a schedule mixing kinds carries
   // whole-number weights only; every weight must also fit every limiter.
@@ -237,6 +290,10 @@ fn compose_with(request : Value) -> Value raise InputError {
   for entry in limiters {
     names.push(entry.name)
   }
+  let member_states : Array[Value] = []
+  for entry in limiters {
+    member_states.push(entry.limiter.to_state())
+  }
   record([
     ("algorithm", String("compose")),
     ("limiters", Number(limiters.length().to_double())),
@@ -246,5 +303,12 @@ fn compose_with(request : Value) -> Value raise InputError {
     ("denied", Number((events.length() - allowed).to_double())),
     ("allowed_weight", Number(allowed_weight)),
     ("decisions", Array(decisions)),
+    (
+      "final_state",
+      record([
+        ("algorithm", String("compose")),
+        ("limiters", Array(member_states)),
+      ]),
+    ),
   ])
 }

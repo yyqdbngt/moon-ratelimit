@@ -143,6 +143,35 @@ parameters (`slices` included for the counter). A schedule mixing window
 limiters with buckets carries whole-number weights only, because windows
 count events. The state and bulk operations stay single-algorithm.
 
+## Resumable replays
+
+Every limit and compose report ends with a `final_state` object: the
+algorithm with its parameters plus the fields decide and commit read -
+bucket tokens and last refill time, GCRA's theoretical arrival time, the
+fixed window's index and count, the sliding window's remembered entries,
+the counter's ring arrays, or one state object per limiter for compose.
+Sending it back as `initial_state` continues the replay exactly where it
+stopped, and the parameters inside the state must equal the request's, so
+a resumed replay cannot quietly run different law.
+
+The property this buys is checked as an algebraic law: a schedule split
+at any event, resumed from the prefix's final_state, answers the
+unbroken replay's remaining decisions bit for bit and lands on the same
+final_state - for every algorithm and for compose, over random schedules.
+The state operation also accepts `initial_state` and reports the resumed
+limiter's free capacity at an instant, which is a zero-weight decide.
+
+```json
+{"algorithm": "token_bucket", "rate": 1, "burst": 2,
+ "initial_state": {"algorithm": "token_bucket", "rate": 1, "burst": 2,
+                   "tokens": 0, "last": 1},
+ "events": [{"at": 2}, {"at": 2}]}
+```
+
+Malformed states are refused by name - wrong algorithm tag, parameter
+mismatch against the request, tokens or counts outside their ranges,
+ring arrays that do not match `slices`, entries out of order.
+
 ## All algorithms
 
 Six algorithms share one request shape: token_bucket, gcra, leaky_bucket, fixed_window, sliding_window and sliding_window_counter. Each takes its own parameters (rate and burst for the buckets, limit and window_seconds for the windows, plus slices for the counter) and returns per-event decisions with allowed, retry_after and free capacity.

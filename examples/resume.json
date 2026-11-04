@@ -1,0 +1,20 @@
+{
+  "algorithm": "token_bucket",
+  "rate": 1,
+  "burst": 2,
+  "initial_state": {
+    "algorithm": "token_bucket",
+    "rate": 1,
+    "burst": 2,
+    "tokens": 0,
+    "last": 1
+  },
+  "events": [
+    {
+      "at": 2
+    },
+    {
+      "at": 2
+    }
+  ]
+}

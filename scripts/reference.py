@@ -315,7 +315,12 @@ def main():
         if 'events' in request:
             events = [(e['at'], e.get('weight', 1)) for e in request['events']]
             algorithm = request.get('algorithm', 'token_bucket')
-            if request.get('operation') == 'compose':
+            if 'initial_state' in request:
+                # Resumed replays are verified by the split-invariance fuzz
+                # below (resume == unbroken suffix, exact final_state),
+                # not by a fresh-replay oracle, which would ignore the state.
+                pass
+            elif request.get('operation') == 'compose':
                 compare('fixture', compose(events, request['limiters']), report['decisions'])
             elif algorithm == 'token_bucket':
                 compare('fixture', token_bucket(events, request['rate'], request['burst']), report['decisions'])
@@ -410,6 +415,43 @@ def main():
                 want = {'token_bucket': token_bucket, 'gcra': gcra,
                     'leaky_bucket': leaky_bucket}[only['algorithm']](cevents, rate, burst)
             compare(f'fuzz-compose-single-{iteration}', want, creport['decisions'])
+
+        # Split-invariance: a replay cut at any event resumes from the
+        # prefix's final_state and answers exactly what the unbroken run
+        # answers - every algorithm, every iteration, plus compose. The
+        # final_state equality is exact, so it also proves the state's
+        # doubles survive the JSON round trip bit for bit.
+        def resumable(request, full, label):
+            schedule = request['events']
+            k = rng.randrange(1, len(schedule))
+            prefix = dict(request, events=schedule[:k])
+            resumed = dict(request, events=schedule[k:],
+                initial_state=run(prefix)['final_state'])
+            suffix = run(resumed)
+            assert len(suffix['decisions']) == len(full['decisions']) - k, label
+            for i, (got, want) in enumerate(
+                    zip(suffix['decisions'], full['decisions'][k:])):
+                assert got['allowed'] == want['allowed'], f'{label}[{i}] allowed'
+                a, b = got.get('retry_after'), want.get('retry_after')
+                assert (a is None) == (b is None), f'{label}[{i}] retry null'
+                if a is not None:
+                    assert abs(a - b) < 1e-9, f'{label}[{i}] retry {a} vs {b}'
+                x = got.get('tokens', got.get('remaining'))
+                y = want.get('tokens', want.get('remaining'))
+                assert abs(x - y) < 1e-9, f'{label}[{i}] free {x} vs {y}'
+            assert suffix['final_state'] == full['final_state'], f'{label} state'
+
+        for family in families:
+            if family['algorithm'] in ('token_bucket', 'gcra', 'leaky_bucket'):
+                cap = int(burst)
+            else:
+                cap = limit
+            revts = [{'at': t, 'weight': min(w, cap)} for t, w in events]
+            request = {'algorithm': family['algorithm'], **{
+                k: v for k, v in family.items() if k != 'algorithm'},
+                'events': revts}
+            resumable(request, run(request), f'resume-{family["algorithm"]}-{iteration}')
+        resumable(crequest, creport, f'resume-compose-{iteration}')
         checked += 1
     for seed in (0, 1, 20261031, 9007199254740991):
         for jitter in ('full', 'equal', 'decorrelated'):

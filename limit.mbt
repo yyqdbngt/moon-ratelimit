@@ -40,7 +40,7 @@ fn parse_events(raw : Array[Value]) -> Array[Event] raise InputError {
 fn limit_with(request : Value) -> Value raise InputError {
   fields_only(request, [
     "operation", "algorithm", "rate", "burst", "limit", "window_seconds", "slices",
-    "events",
+    "events", "initial_state",
   ])
   let events = parse_events(arr(required(request, "events")))
   let algorithm = optional_str(get(request, "algorithm"), "token_bucket")
@@ -57,53 +57,102 @@ fn limit_with(request : Value) -> Value raise InputError {
 
 ///|
 /// Reports the limiter's free capacity at a given instant without admitting
-/// anything. Works for all four algorithms.
+/// anything. Works for every algorithm, fresh or resumed from an
+/// `initial_state`: the probe is a zero-weight decide, pure by construction.
 fn state_with(request : Value) -> Value raise InputError {
   fields_only(request, [
-    "operation", "algorithm", "rate", "burst", "limit", "window_seconds", "at",
+    "operation", "algorithm", "rate", "burst", "limit", "window_seconds", "slices",
+    "at", "initial_state",
   ])
   let at = num(required(request, "at"))
   if at < 0.0 {
     raise InputError("at must be nonnegative")
   }
+  let initial = get(request, "initial_state")
   let algorithm = optional_str(get(request, "algorithm"), "token_bucket")
-  match algorithm {
-    "token_bucket" | "gcra" => {
-      let rate = num(required(request, "rate"))
-      let capacity = num(required(request, "burst"))
-      if rate <= 0.0 {
-        raise InputError("rate must be positive")
-      }
-      if capacity <= 0.0 {
-        raise InputError("burst must be positive")
-      }
-      // The initial state is full, so the free capacity with no prior
-      // admissions is the full capacity.
-      record([
-        ("algorithm", String(algorithm)),
-        ("at", Number(at)),
-        ("free", Number(capacity)),
-        ("capacity", Number(capacity)),
-      ])
+  fn bucket_params() -> (Double, Double) raise InputError {
+    let rate = num(required(request, "rate"))
+    let capacity = num(required(request, "burst"))
+    if rate <= 0.0 {
+      raise InputError("rate must be positive")
     }
-    "fixed_window" | "sliding_window" => {
-      let limit = num(required(request, "limit"))
-      let window = num(required(request, "window_seconds"))
-      if limit < 1.0 || limit.floor() != limit {
-        raise InputError("limit must be a positive whole number")
+    if capacity <= 0.0 {
+      raise InputError("burst must be positive")
+    }
+    (rate, capacity)
+  }
+  fn window_params() -> (Int32, Double) raise InputError {
+    let limit = read_window_limit(request)
+    let window = read_window_seconds(request)
+    (limit, window)
+  }
+  let answer = match algorithm {
+    "token_bucket" => {
+      let (rate, capacity) = bucket_params()
+      let limiter = match initial {
+        Null => token_bucket(rate, capacity)
+        state => token_bucket_from_state(state, rate, capacity)
       }
-      if window <= 0.0 {
-        raise InputError("window_seconds must be positive")
+      (limiter.decide(at, 0.0).tokens, capacity)
+    }
+    "gcra" => {
+      let (rate, capacity) = bucket_params()
+      let limiter = match initial {
+        Null => gcra(rate, capacity)
+        state => gcra_from_state(state, rate, capacity)
       }
-      record([
-        ("algorithm", String(algorithm)),
-        ("at", Number(at)),
-        ("free", Number(limit)),
-        ("capacity", Number(limit)),
-      ])
+      (limiter.decide(at, 0.0).tokens, capacity)
+    }
+    "leaky_bucket" => {
+      let (rate, capacity) = bucket_params()
+      let limiter = match initial {
+        Null => leaky_bucket(rate, capacity)
+        state => leaky_bucket_from_state(state, rate, capacity)
+      }
+      (limiter.decide(at, 0.0).tokens, capacity)
+    }
+    "fixed_window" => {
+      let (limit, window) = window_params()
+      let limiter = match initial {
+        Null => fixed_window(limit, window)
+        state => fixed_window_from_state(state, limit, window)
+      }
+      (limiter.decide(at, 0).tokens, limit.to_double())
+    }
+    "sliding_window" => {
+      let (limit, window) = window_params()
+      let limiter = match initial {
+        Null => sliding_window(limit, window)
+        state => sliding_window_from_state(state, limit, window)
+      }
+      (limiter.decide(at, 0).tokens, limit.to_double())
+    }
+    "sliding_window_counter" => {
+      let (limit, window) = window_params()
+      let slices = optional_num(get(request, "slices"), 10.0)
+      if slices < 2.0 || slices.floor() != slices || slices > 1000.0 {
+        raise InputError("slices must be a whole number 2..1000")
+      }
+      let limiter = match initial {
+        Null => sliding_window_counter(limit, window, slices.to_int())
+        state =>
+          sliding_window_counter_from_state(
+            state,
+            limit,
+            window,
+            slices.to_int(),
+          )
+      }
+      (limiter.decide(at, 0).tokens, limit.to_double())
     }
     _ => raise InputError("unsupported limiter algorithm: " + algorithm)
   }
+  record([
+    ("algorithm", String(algorithm)),
+    ("at", Number(at)),
+    ("free", Number(answer.0)),
+    ("capacity", Number(answer.1)),
+  ])
 }
 
 ///|
@@ -116,7 +165,10 @@ fn limit_gcra(request : Value, events : Array[Event]) -> Value raise InputError 
   if capacity <= 0.0 {
     raise InputError("burst must be positive")
   }
-  let limiter = gcra(rate, capacity)
+  let limiter = match get(request, "initial_state") {
+    Null => gcra(rate, capacity)
+    state => gcra_from_state(state, rate, capacity)
+  }
   let decisions : Array[Value] = []
   let mut allowed = 0
   let mut allowed_weight = 0.0
@@ -143,6 +195,7 @@ fn limit_gcra(request : Value, events : Array[Event]) -> Value raise InputError 
     ("allowed", Number(allowed.to_double())),
     ("denied", Number((events.length() - allowed).to_double())),
     ("allowed_weight", Number(allowed_weight)),
+    ("final_state", limiter.to_state()),
   ])
 }
 
@@ -175,7 +228,10 @@ fn limit_token_bucket(
   if capacity <= 0.0 {
     raise InputError("burst must be positive")
   }
-  let bucket = token_bucket(rate, capacity)
+  let bucket = match get(request, "initial_state") {
+    Null => token_bucket(rate, capacity)
+    state => token_bucket_from_state(state, rate, capacity)
+  }
   let decisions : Array[Value] = []
   let mut allowed = 0
   let mut allowed_weight = 0.0
@@ -202,6 +258,7 @@ fn limit_token_bucket(
     ("allowed", Number(allowed.to_double())),
     ("denied", Number((events.length() - allowed).to_double())),
     ("allowed_weight", Number(allowed_weight)),
+    ("final_state", bucket.to_state()),
   ])
 }
 
@@ -302,7 +359,10 @@ fn limit_fixed_window(
   for event in events {
     weights.push(integer_weight(event))
   }
-  let limiter = fixed_window(limit, window)
+  let limiter = match get(request, "initial_state") {
+    Null => fixed_window(limit, window)
+    state => fixed_window_from_state(state, limit, window)
+  }
   let report = replay_window(
     events,
     weights,
@@ -312,6 +372,7 @@ fn limit_fixed_window(
   let fields = obj(report).copy()
   fields["limit"] = Number(limit.to_double())
   fields["window_seconds"] = Number(window)
+  fields["final_state"] = limiter.to_state()
   Object(fields)
 }
 
@@ -332,7 +393,10 @@ fn limit_sliding_window(
       )
     }
   }
-  let limiter = sliding_window(limit, window)
+  let limiter = match get(request, "initial_state") {
+    Null => sliding_window(limit, window)
+    state => sliding_window_from_state(state, limit, window)
+  }
   let report = replay_window(
     events,
     weights,
@@ -342,6 +406,7 @@ fn limit_sliding_window(
   let fields = obj(report).copy()
   fields["limit"] = Number(limit.to_double())
   fields["window_seconds"] = Number(window)
+  fields["final_state"] = limiter.to_state()
   Object(fields)
 }
 
@@ -412,7 +477,10 @@ fn limit_leaky_bucket(
   if capacity <= 0.0 {
     raise InputError("burst must be positive")
   }
-  let limiter = leaky_bucket(rate, capacity)
+  let limiter = match get(request, "initial_state") {
+    Null => leaky_bucket(rate, capacity)
+    state => leaky_bucket_from_state(state, rate, capacity)
+  }
   let decisions : Array[Value] = []
   let mut allowed = 0
   let mut allowed_weight = 0.0
@@ -439,6 +507,7 @@ fn limit_leaky_bucket(
     ("allowed", Number(allowed.to_double())),
     ("denied", Number((events.length() - allowed).to_double())),
     ("allowed_weight", Number(allowed_weight)),
+    ("final_state", limiter.to_state()),
   ])
 }
 
@@ -463,7 +532,11 @@ fn limit_sliding_window_counter(
       )
     }
   }
-  let limiter = sliding_window_counter(limit, window, slices.to_int())
+  let limiter = match get(request, "initial_state") {
+    Null => sliding_window_counter(limit, window, slices.to_int())
+    state =>
+      sliding_window_counter_from_state(state, limit, window, slices.to_int())
+  }
   let report = replay_window(
     events,
     weights,
@@ -474,5 +547,6 @@ fn limit_sliding_window_counter(
   fields["limit"] = Number(limit.to_double())
   fields["window_seconds"] = Number(window)
   fields["slices"] = Number(slices)
+  fields["final_state"] = limiter.to_state()
   Object(fields)
 }

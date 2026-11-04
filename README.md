@@ -20,7 +20,13 @@ sub-window boundary; compose, the transactional AND of 1..8 limiters - every
 limiter's pure decision is computed first and all of them consume only when
 every one allowed, so a denial by one limiter burns nothing in another, and
 every algorithm is now expressed as a pure decide plus a commit that the
-single-limiter paths and compose share; jittered exponential backoff and a leaky bucket (the queue-side dual) in the three AWS shapes over a seeded
+single-limiter paths and compose share; resumable replays - every report
+carries a final_state object (parameters plus the fields decide and commit
+read) that can be sent back as initial_state to continue where the replay
+stopped, with split-invariance checked as an algebraic law (a schedule cut
+at any event, resumed, answers the unbroken replay's suffix bit for bit)
+and the state operation probing a resumed limiter's free capacity;
+jittered exponential backoff and a leaky bucket (the queue-side dual) in the three AWS shapes over a seeded
 SplitMix64, reproducible bit for bit. Every decision is a pure function of
 (state, now, weight): time is injected, never read.
 

@@ -25,5 +25,11 @@
   "events": 3,
   "allowed": 2,
   "denied": 1,
-  "allowed_weight": 2
+  "allowed_weight": 2,
+  "final_state": {
+    "algorithm": "gcra",
+    "rate": 2,
+    "burst": 1,
+    "tat": 1
+  }
 }

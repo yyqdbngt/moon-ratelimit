@@ -925,5 +925,137 @@
       "allowed": 4,
       "denied": 1
     }
+  },
+  {
+    "name": "resume token bucket from exported state",
+    "request": {
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 2,
+      "initial_state": {
+        "algorithm": "token_bucket",
+        "rate": 1,
+        "burst": 2,
+        "tokens": 0,
+        "last": 1
+      },
+      "events": [
+        {
+          "at": 2
+        },
+        {
+          "at": 2
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 1,
+      "denied": 1
+    }
+  },
+  {
+    "name": "resume sliding window entries aged out",
+    "request": {
+      "algorithm": "sliding_window",
+      "limit": 2,
+      "window_seconds": 1,
+      "initial_state": {
+        "algorithm": "sliding_window",
+        "limit": 2,
+        "window_seconds": 1,
+        "entries": [
+          {
+            "at": 0,
+            "weight": 1
+          },
+          {
+            "at": 0,
+            "weight": 1
+          }
+        ]
+      },
+      "events": [
+        {
+          "at": 1
+        },
+        {
+          "at": 1
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2,
+      "denied": 0
+    }
+  },
+  {
+    "name": "resume compose member states",
+    "request": {
+      "operation": "compose",
+      "limiters": [
+        {
+          "algorithm": "fixed_window",
+          "limit": 2,
+          "window_seconds": 2
+        },
+        {
+          "algorithm": "token_bucket",
+          "rate": 1,
+          "burst": 2
+        }
+      ],
+      "initial_state": {
+        "algorithm": "compose",
+        "limiters": [
+          {
+            "algorithm": "fixed_window",
+            "limit": 2,
+            "window_seconds": 2,
+            "index": 0,
+            "count": 2
+          },
+          {
+            "algorithm": "token_bucket",
+            "rate": 1,
+            "burst": 2,
+            "tokens": 0.5,
+            "last": 0.5
+          }
+        ]
+      },
+      "events": [
+        {
+          "at": 2.5
+        },
+        {
+          "at": 2.5
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2,
+      "denied": 0
+    }
+  },
+  {
+    "name": "state probe resumed bucket",
+    "request": {
+      "operation": "state",
+      "algorithm": "token_bucket",
+      "rate": 1,
+      "burst": 2,
+      "at": 1.5,
+      "initial_state": {
+        "algorithm": "token_bucket",
+        "rate": 1,
+        "burst": 2,
+        "tokens": 0,
+        "last": 1
+      }
+    },
+    "expected": {
+      "free": 0.5,
+      "capacity": 2
+    }
   }
 ]

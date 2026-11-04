@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.7.0 — 2026-11-04
+
+Resumable replays. Every limit and compose report ends with a final_state
+object: the algorithm, its parameters, and exactly the fields decide and
+commit read - bucket tokens and last, GCRA's tat, the fixed window's index
+and count, the sliding window's remembered entries, the counter's ring
+arrays, or one state per limiter for compose. Sending it back as
+initial_state continues the replay where it stopped; the parameters inside
+the state must equal the request's, so a resumed replay cannot quietly run
+different law, and malformed states are refused by name (wrong algorithm
+tag, parameter mismatch, out-of-range tokens or counts, ring arrays not
+matching slices, entries out of order). The property is verified as an
+algebraic law by the oracle fuzz: a schedule split at any event, resumed
+from the prefix's final_state, answers the unbroken replay's remaining
+decisions bit for bit and lands on the identical final_state - every
+algorithm, every iteration, plus compose; the exact final_state equality
+also proves the state's doubles survive the JSON round trip. The state
+operation now accepts initial_state and covers all six algorithms,
+probing free capacity with a zero-weight decide. Six white-box tests,
+four fixtures, one pinned example and eight malformed-state cases (51
+total) join the ladder.
+
 ## 0.6.0 — 2026-11-04
 
 The compose operation: one schedule replayed against 1..8 limiters with
