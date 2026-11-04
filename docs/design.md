@@ -125,3 +125,7 @@ retry_after names the exact second a same-weight request fits. For the token buc
 ## Choice guide
 
 Use the token bucket when you want burst tolerance and a steady refill. Use GCRA when you want the same semantics with one state variable. Use the leaky bucket when you want the queue-side view. Use the sliding window when boundary straddles matter; the fixed window when they do not and two integers of memory is all you can afford.
+
+## Performance expectation
+
+A limit request costs O(events) time and O(1) memory per algorithm state. The sliding window adds O(events-in-window) memory. No algorithm allocates proportional to the time span.
