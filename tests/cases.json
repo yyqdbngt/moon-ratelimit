@@ -528,5 +528,17 @@
       "attempts": 8,
       "seed": 42
     }
+  },
+  {
+    "name": "backoff equal jitter seed 0",
+    "request": {
+      "operation": "backoff",
+      "base_ms": 50,
+      "multiplier": 3,
+      "max_ms": 3000,
+      "jitter": "equal",
+      "attempts": 5,
+      "seed": 0
+    }
   }
 ]
