@@ -38,3 +38,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - Events must be nondecreasing in time; equal instants are legal (the same-instant tests pin the semantics). Going backwards is refused.
 
 - The bulk operation currently supports only the token bucket; extending it to other algorithms requires defining what batch admission means for each.
+
+- The state operation reports a fresh limiter's capacity. A stateful variant that tracks prior admissions would require either a session identifier or replaying the full schedule.
