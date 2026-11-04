@@ -81,3 +81,7 @@ The library compiles for js, wasm, wasm-gc and native. Serializer tests pin the 
 ## Validation contract
 
 Every request field is validated before any computation: unknown fields are rejected by name, parameters out of range are refused with the boundary stated, and events must be nondecreasing in time.
+
+## Free-capacity reporting
+
+The decision field reports tokens (buckets) or remaining (windows): the free capacity after each event. This is what callers need to decide whether to admit supplementary work without another request.
