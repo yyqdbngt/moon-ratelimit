@@ -28,3 +28,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - Fractional weights are continuous on the buckets (a weight of 0.5 against a capacity of 1 admits two events) and must be whole numbers on the windows; the refusal names the offending weight.
 
 - The state and bulk operations describe a fresh limiter and do not model prior admissions; callers wanting stateful introspection should replay the full schedule through limit.
+
+- All algorithms compute in doubles. On dyadic parameters (integer capacities, rates that are exact powers of two, eighth-second intervals) every path is exact. Non-dyadic values may differ in the last ulp.
