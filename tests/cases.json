@@ -349,5 +349,30 @@
       "allowed": 2,
       "denied": 1
     }
+  },
+  {
+    "name": "bucket refill two tokens",
+    "request": {
+      "algorithm": "token_bucket",
+      "rate": 2,
+      "burst": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 1
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 4
+    }
   }
 ]
