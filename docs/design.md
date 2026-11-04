@@ -93,3 +93,7 @@ The theoretical arrival time (tat) form is used because it makes the equivalence
 ## Testing strategy
 
 Edge tests pin exact arithmetic; the oracle re-derives every answer from the request alone on random schedules; the robustness sweep feeds malformed inputs; and the statistics are machine-recounted.
+
+## Sliding window memory
+
+The exact sliding window remembers every admitted (time, weight) entry until it ages out. Memory grows with the events in one window; for a bounded-memory approximation, the fixed window costs two integers.
