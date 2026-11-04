@@ -85,3 +85,7 @@ Every request field is validated before any computation: unknown fields are reje
 ## Free-capacity reporting
 
 The decision field reports tokens (buckets) or remaining (windows): the free capacity after each event. This is what callers need to decide whether to admit supplementary work without another request.
+
+## GCRA formulation
+
+The theoretical arrival time (tat) form is used because it makes the equivalence with the token bucket an algebraic identity rather than a hope: tokens(now) = capacity - rate * max(0, tat - now).
