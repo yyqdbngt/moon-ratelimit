@@ -33,3 +33,11 @@ with limit; bulk currently supports only the token bucket.
 ## The queue-side dual
 
 The leaky bucket is the token bucket seen from the queue side: both share the same rate and capacity. The token bucket admits when enough tokens have accumulated; the leaky bucket admits when the queue can absorb the pour. The duality test runs the same schedule through both and asserts identical admission counts.
+
+## Verification architecture
+
+Five layers cover every algorithm: white-box laws (MoonBit tests), CLI
+fixtures (through the compiled binary), an independent Python oracle (same
+algorithms separately written), a malformed-input sweep, and machine-checked
+statistics. The oracle's GCRA and leaky-bucket implementations share no code
+with the MoonBit; agreement on random schedules is the check.

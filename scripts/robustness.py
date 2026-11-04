@@ -53,7 +53,15 @@ CASES = [
 failures = []
 for label, request in CASES:
     result = subprocess.run(
-        ['node', str(CLI), '-'],
+        ['node', str(CLI), '-'    ('backoff seed fractional', {'operation': 'backoff', 'base_ms': 100,
+      'attempts': 3, 'seed': 0.5}),
+    ('backoff max_ms below base', {'operation': 'backoff', 'base_ms': 200,
+      'attempts': 3, 'max_ms': 100}),
+    ('state leaky bucket missing burst', {'operation': 'state',
+      'algorithm': 'leaky_bucket', 'rate': 1, 'at': 1}),
+    ('state unknown algorithm', {'operation': 'state',
+      'algorithm': 'fuzzy_bucket', 'rate': 1, 'burst': 1, 'at': 1}),
+],
         input=json.dumps(request), capture_output=True, text=True,
         encoding='utf-8', timeout=20)
     if result.returncode != 1:
