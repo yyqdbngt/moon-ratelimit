@@ -40,3 +40,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - The bulk operation currently supports only the token bucket; extending it to other algorithms requires defining what batch admission means for each.
 
 - The state operation reports a fresh limiter's capacity. A stateful variant that tracks prior admissions would require either a session identifier or replaying the full schedule.
+
+- Weight must not exceed burst on the buckets and limit on the windows; a weight that can never be admitted is refused up front rather than answered with an infinite retry.
