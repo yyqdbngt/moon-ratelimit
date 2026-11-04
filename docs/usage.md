@@ -104,3 +104,7 @@ The queue-side dual of the token bucket: capacity units of queue draining at `ra
 ```json
 {"algorithm": "leaky_bucket", "rate": 1, "burst": 2, "events": [{"at": 0}, {"at": 0}, {"at": 3}]}
 ```
+
+## All algorithms
+
+Five algorithms share one request shape: token_bucket, gcra, leaky_bucket, fixed_window and sliding_window. Each takes its own parameters (rate and burst for the buckets, limit and window_seconds for the windows) and returns per-event decisions with allowed, retry_after and free capacity.
