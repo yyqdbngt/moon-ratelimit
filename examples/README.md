@@ -15,3 +15,4 @@ node _build/js/debug/build/cmd/main/main.js examples/<name>.json
 | `leaky-bucket.json` | the queue-side dual filling and draining |
 | `bulk.json` | batch admission |
 | `state.json` | free capacity |
+| `window.json` | the boundary-burst demonstration |
