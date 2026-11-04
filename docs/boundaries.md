@@ -22,3 +22,5 @@ SplitMix64 is deterministic and non-cryptographic; a seeded jitter table is
 reproducible by design, which is the point and the limit.
 
 The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
+
+- The leaky bucket is the queue-side dual of the token bucket with the same validation contract; both are exact in doubles on dyadic parameters.
