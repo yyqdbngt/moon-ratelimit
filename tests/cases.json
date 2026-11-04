@@ -666,5 +666,30 @@
     "expected": {
       "allowed": 6
     }
+  },
+  {
+    "name": "sliding window two entry",
+    "request": {
+      "algorithm": "sliding_window",
+      "limit": 2,
+      "window_seconds": 1,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 1.1
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 3
+    }
   }
 ]
