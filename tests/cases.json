@@ -452,5 +452,30 @@
     "expected": {
       "allowed": 2
     }
+  },
+  {
+    "name": "fixed window two windows",
+    "request": {
+      "algorithm": "fixed_window",
+      "limit": 2,
+      "window_seconds": 1,
+      "events": [
+        {
+          "at": 0.5
+        },
+        {
+          "at": 0.9
+        },
+        {
+          "at": 1.5
+        },
+        {
+          "at": 1.8
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 4
+    }
   }
 ]
