@@ -50,3 +50,5 @@ The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 - The oracle and the engine agree on all fixtures and 40 random schedules per iteration. Agreement is checked by exact decision comparison, not by summary statistics.
 
 - The verify.sh ladder and the CI integration job run the same steps; a script added to one but not the other is a drift the workflow check in the sibling project catches.
+
+- The GCRA and token bucket agree bitwise on dyadic parameters; on non-dyadic values the two float paths round differently at the admission boundary, which the equivalence test documents.
