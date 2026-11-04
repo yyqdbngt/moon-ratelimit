@@ -1,0 +1,44 @@
+{
+  "algorithm": "compose",
+  "limiters": 2,
+  "algorithms": [
+    "fixed_window",
+    "token_bucket"
+  ],
+  "events": 5,
+  "allowed": 4,
+  "denied": 1,
+  "allowed_weight": 4,
+  "decisions": [
+    {
+      "at": 0,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 1
+    },
+    {
+      "at": 0,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 0
+    },
+    {
+      "at": 0.5,
+      "allowed": false,
+      "retry_after": 1.5,
+      "remaining": 0
+    },
+    {
+      "at": 2.5,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 1
+    },
+    {
+      "at": 2.5,
+      "allowed": true,
+      "retry_after": null,
+      "remaining": 0
+    }
+  ]
+}

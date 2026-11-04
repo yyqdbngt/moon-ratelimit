@@ -121,6 +121,28 @@ boundary, the earliest moment the summed range can shift.
  "events": [{"at": 0}, {"at": 0}, {"at": 0.3}]}
 ```
 
+## compose
+
+Several limiters, one schedule, transactional admission: an event is
+admitted only when every limiter would admit it, and then every limiter
+consumes it; a refusal by one limiter burns nothing anywhere. A denied
+event reports the longest of the refusals (the event must outwait the
+slowest limiter) and the smallest remaining capacity across limiters. A
+compose of one limiter answers exactly what running that algorithm alone
+answers, which the fuzz checks schedule by schedule.
+
+```json
+{"operation": "compose",
+ "limiters": [{"algorithm": "fixed_window", "limit": 2, "window_seconds": 2},
+              {"algorithm": "token_bucket", "rate": 1, "burst": 2}],
+ "events": [{"at": 0}, {"at": 0}, {"at": 0.5}, {"at": 2.5}, {"at": 2.5}]}
+```
+
+`limiters` lists 1..8 specs, each an `algorithm` plus that algorithm's
+parameters (`slices` included for the counter). A schedule mixing window
+limiters with buckets carries whole-number weights only, because windows
+count events. The state and bulk operations stay single-algorithm.
+
 ## All algorithms
 
 Six algorithms share one request shape: token_bucket, gcra, leaky_bucket, fixed_window, sliding_window and sliding_window_counter. Each takes its own parameters (rate and burst for the buckets, limit and window_seconds for the windows, plus slices for the counter) and returns per-event decisions with allowed, retry_after and free capacity.

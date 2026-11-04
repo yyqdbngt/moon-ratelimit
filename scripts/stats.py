@@ -2,7 +2,7 @@
 import json, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
-PRODUCTION = ['api.mbt', 'backoff.mbt', 'bucket.mbt', 'gcra.mbt',
+PRODUCTION = ['api.mbt', 'backoff.mbt', 'bucket.mbt', 'compose.mbt', 'gcra.mbt',
     'limit.mbt', 'splitmix.mbt', 'swcounter.mbt', 'value.mbt', 'window.mbt']
 physical = noncomment = 0
 for name in PRODUCTION:
@@ -18,7 +18,7 @@ stats = {'physical': physical, 'noncomment': noncomment, 'tests': tests,
     'fixtures': fixtures, 'examples': examples}
 if '--write' in sys.argv:
     table = ('# Source and verification statistics\n\n'
-        'Snapshot date: 2026-11-04. Module version: 0.5.0.\n\n'
+        'Snapshot date: 2026-11-04. Module version: 0.6.0.\n\n'
         '| Category | Count |\n|---|---:|\n'
         f'| Owned production MoonBit physical lines (root) | {physical} |\n'
         f'| Nonblank, non-comment production lines | {noncomment} |\n'

@@ -48,7 +48,10 @@ fn SlidingWindowCounter::held_at(
 }
 
 ///|
-fn SlidingWindowCounter::check(
+/// The decision for (now, weight) summed over the `slices` sub-windows
+/// ending at the current one, without writing anything: the ring is only
+/// touched when the event is committed.
+fn SlidingWindowCounter::decide(
   self : SlidingWindowCounter,
   now : Double,
   weight : Int32,
@@ -64,12 +67,6 @@ fn SlidingWindowCounter::check(
     }
   }
   if held + weight <= self.limit {
-    let slot = (current % self.slices + self.slices) % self.slices
-    if self.origins[slot] != current {
-      self.origins[slot] = current
-      self.counts[slot] = 0
-    }
-    self.counts[slot] = self.counts[slot] + weight
     {
       allowed: true,
       retry_after: None,
@@ -85,4 +82,33 @@ fn SlidingWindowCounter::check(
       tokens: (self.limit - held).to_double(),
     }
   }
+}
+
+///|
+fn SlidingWindowCounter::commit(
+  self : SlidingWindowCounter,
+  now : Double,
+  weight : Int32,
+  allowed : Bool,
+) -> Unit {
+  if allowed {
+    let current = (now / self.slice_width).floor().to_int()
+    let slot = (current % self.slices + self.slices) % self.slices
+    if self.origins[slot] != current {
+      self.origins[slot] = current
+      self.counts[slot] = 0
+    }
+    self.counts[slot] = self.counts[slot] + weight
+  }
+}
+
+///|
+fn SlidingWindowCounter::check(
+  self : SlidingWindowCounter,
+  now : Double,
+  weight : Int32,
+) -> Admission {
+  let decision = self.decide(now, weight)
+  self.commit(now, weight, decision.allowed)
+  decision
 }

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.6.0 — 2026-11-04
+
+The compose operation: one schedule replayed against 1..8 limiters with
+transactional admission. Every algorithm was re-expressed as a pure decide
+(no state change) plus a commit that applies the event exactly as the
+single-algorithm path always has - including the time folds on denial, so
+bitwise behavior is unchanged and the single-limiter paths now share the
+same two steps compose uses. An event is admitted only when every limiter
+would admit it, then every limiter consumes it; a refusal by one limiter
+burns nothing anywhere. Denied events report the longest of the refusals
+and the smallest remaining capacity across limiters; a compose of one
+limiter answers exactly what running the algorithm alone answers, which
+the oracle fuzz checks schedule by schedule. White-box tests pin the
+transactional no-consume property on a schedule where a greedy compose
+would differ, and the longest-refusal/smallest-remaining answers. Eight
+compose malformed-input cases join the sweep (44 total).
+
 ## 0.5.0 — 2026-11-04
 
 Sixth algorithm: the sliding window counter, a bounded-memory approximation

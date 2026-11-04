@@ -16,7 +16,11 @@ a bounded-memory sliding window counter that approximates the exact window
 from `slices` ring slots, where each slot records the sub-window it was last
 written for so a reused slot cannot leak a count from one full ring earlier
 (no aging pass, no aliasing), with refusal retry-after pointing at the next
-sub-window boundary; jittered exponential backoff and a leaky bucket (the queue-side dual) in the three AWS shapes over a seeded
+sub-window boundary; compose, the transactional AND of 1..8 limiters - every
+limiter's pure decision is computed first and all of them consume only when
+every one allowed, so a denial by one limiter burns nothing in another, and
+every algorithm is now expressed as a pure decide plus a commit that the
+single-limiter paths and compose share; jittered exponential backoff and a leaky bucket (the queue-side dual) in the three AWS shapes over a seeded
 SplitMix64, reproducible bit for bit. Every decision is a pure function of
 (state, now, weight): time is injected, never read.
 

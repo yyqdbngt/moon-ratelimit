@@ -31,15 +31,35 @@ fn Gcra::tokens_now(self : Gcra, now : Double) -> Double {
 }
 
 ///|
-fn Gcra::check(self : Gcra, now : Double, weight : Double) -> Admission {
+/// The decision for (now, weight) from the TAT invariant, without moving
+/// `tat`: a denial never changes GCRA state, so commit only acts on allow.
+fn Gcra::decide(self : Gcra, now : Double, weight : Double) -> Admission {
   let tokens = self.tokens_now(now)
   if weight <= tokens {
-    let start = if self.tat > now { self.tat } else { now }
-    self.tat = start + weight / self.rate
     { allowed: true, retry_after: None, tokens: tokens - weight, }
   } else {
     // Deficit over rate: identical in value to the bucket's arithmetic.
     let deficit = weight - tokens
     { allowed: false, retry_after: Some(deficit / self.rate), tokens, }
   }
+}
+
+///|
+fn Gcra::commit(
+  self : Gcra,
+  now : Double,
+  weight : Double,
+  allowed : Bool,
+) -> Unit {
+  if allowed {
+    let start = if self.tat > now { self.tat } else { now }
+    self.tat = start + weight / self.rate
+  }
+}
+
+///|
+fn Gcra::check(self : Gcra, now : Double, weight : Double) -> Admission {
+  let decision = self.decide(now, weight)
+  self.commit(now, weight, decision.allowed)
+  decision
 }

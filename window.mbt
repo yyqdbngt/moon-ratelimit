@@ -18,31 +18,60 @@ fn fixed_window(limit : Int32, window : Double) -> FixedWindow {
 }
 
 ///|
-fn FixedWindow::check(
+/// The decision for (now, weight) in the bucket that `now` falls into,
+/// without touching the stored bucket: a read of the current index's count,
+/// or zero when the index has moved on.
+fn FixedWindow::decide(
   self : FixedWindow,
   now : Double,
   weight : Int32,
 ) -> Admission {
   let index = (now / self.window).floor().to_int64()
-  if index != self.index {
-    self.index = index
-    self.count = 0
-  }
-  if self.count + weight <= self.limit {
-    self.count = self.count + weight
+  let count = if index != self.index { 0 } else { self.count }
+  if count + weight <= self.limit {
     {
       allowed: true,
       retry_after: None,
-      tokens: (self.limit - self.count).to_double(),
+      tokens: (self.limit - count - weight).to_double(),
     }
   } else {
     let boundary = (index + 1).to_double() * self.window
     {
       allowed: false,
       retry_after: Some(boundary - now),
-      tokens: (self.limit - self.count).to_double(),
+      tokens: (self.limit - count).to_double(),
     }
   }
+}
+
+///|
+/// Applies one event: the bucket switch happens for denied events too, as
+/// the single-window path always has, so a stale count is never read back.
+fn FixedWindow::commit(
+  self : FixedWindow,
+  now : Double,
+  weight : Int32,
+  allowed : Bool,
+) -> Unit {
+  let index = (now / self.window).floor().to_int64()
+  if index != self.index {
+    self.index = index
+    self.count = 0
+  }
+  if allowed {
+    self.count = self.count + weight
+  }
+}
+
+///|
+fn FixedWindow::check(
+  self : FixedWindow,
+  now : Double,
+  weight : Int32,
+) -> Admission {
+  let decision = self.decide(now, weight)
+  self.commit(now, weight, decision.allowed)
+  decision
 }
 
 ///|
@@ -73,14 +102,15 @@ fn SlidingWindow::sum(self : SlidingWindow, now : Double) -> Int32 {
 }
 
 ///|
-fn SlidingWindow::check(
+/// The decision for (now, weight) summed over the live entries, without
+/// recording anything: denied events add no memory.
+fn SlidingWindow::decide(
   self : SlidingWindow,
   now : Double,
   weight : Int32,
 ) -> Admission {
   let held = self.sum(now)
   if held + weight <= self.limit {
-    self.entries.push((now, weight))
     {
       allowed: true,
       retry_after: None,
@@ -119,4 +149,27 @@ fn SlidingWindow::check(
         }
     }
   }
+}
+
+///|
+fn SlidingWindow::commit(
+  self : SlidingWindow,
+  now : Double,
+  weight : Int32,
+  allowed : Bool,
+) -> Unit {
+  if allowed {
+    self.entries.push((now, weight))
+  }
+}
+
+///|
+fn SlidingWindow::check(
+  self : SlidingWindow,
+  now : Double,
+  weight : Int32,
+) -> Admission {
+  let decision = self.decide(now, weight)
+  self.commit(now, weight, decision.allowed)
+  decision
 }

@@ -775,5 +775,155 @@
     "expected": {
       "allowed": 4
     }
+  },
+  {
+    "name": "compose transactional admission",
+    "request": {
+      "operation": "compose",
+      "limiters": [
+        {
+          "algorithm": "fixed_window",
+          "limit": 2,
+          "window_seconds": 10
+        },
+        {
+          "algorithm": "token_bucket",
+          "rate": 1,
+          "burst": 1
+        }
+      ],
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0.5
+        },
+        {
+          "at": 5.5
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 2,
+      "denied": 1
+    }
+  },
+  {
+    "name": "compose longest refusal smallest remaining",
+    "request": {
+      "operation": "compose",
+      "limiters": [
+        {
+          "algorithm": "sliding_window",
+          "limit": 3,
+          "window_seconds": 4
+        },
+        {
+          "algorithm": "token_bucket",
+          "rate": 1,
+          "burst": 2
+        }
+      ],
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 1
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 3,
+      "denied": 1,
+      "decisions/0/remaining": 1,
+      "decisions/3/retry_after": 3
+    }
+  },
+  {
+    "name": "compose single gcra equals plain",
+    "request": {
+      "operation": "compose",
+      "limiters": [
+        {
+          "algorithm": "gcra",
+          "rate": 1,
+          "burst": 2
+        }
+      ],
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 2
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 4,
+      "denied": 1
+    }
+  },
+  {
+    "name": "compose three limiters",
+    "request": {
+      "operation": "compose",
+      "limiters": [
+        {
+          "algorithm": "token_bucket",
+          "rate": 1,
+          "burst": 2
+        },
+        {
+          "algorithm": "sliding_window_counter",
+          "limit": 3,
+          "window_seconds": 2,
+          "slices": 4
+        },
+        {
+          "algorithm": "leaky_bucket",
+          "rate": 2,
+          "burst": 3
+        }
+      ],
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 0
+        },
+        {
+          "at": 0.5
+        },
+        {
+          "at": 1
+        },
+        {
+          "at": 2.5
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 4,
+      "denied": 1
+    }
   }
 ]
