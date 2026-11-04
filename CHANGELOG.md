@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 — 2026-11-04
+
+Registry version: 0.4.0. Five algorithms (token bucket, GCRA, leaky bucket,
+fixed window, sliding window); the state and bulk operations; jittered
+exponential backoff with seeded SplitMix64; 37 test declarations across four
+backends; 34 CLI fixtures; the independent Python oracle with fuzz; a 31-case
+malformed-input sweep; 17 design notes and 25 boundary statements.
+
 ## 0.2.0 — 2026-11-03
 
 Registry version: 0.2.0. The state operation reports free capacity at an
