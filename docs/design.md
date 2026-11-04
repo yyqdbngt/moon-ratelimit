@@ -73,3 +73,7 @@ Every operation is a pure function of (state, now, weight). Time is injected, ne
 ## Backoff table determinism
 
 The seeded SplitMix64 reproduces the same jitter table bit for bit from the seed in the request. Seeds are 0..2^53-1; the generator is named as non-cryptographic wherever it appears.
+
+## Cross-backend agreement
+
+The library compiles for js, wasm, wasm-gc and native. Serializer tests pin the exact number spellings and escapes so a report written on one backend parses identically on another.
