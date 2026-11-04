@@ -24,3 +24,5 @@ reproducible by design, which is the point and the limit.
 The CLI is JS-only; the library supports js, wasm, wasm-gc and native.
 
 - The leaky bucket is the queue-side dual of the token bucket with the same validation contract; both are exact in doubles on dyadic parameters.
+
+- Fractional weights are continuous on the buckets (a weight of 0.5 against a capacity of 1 admits two events) and must be whole numbers on the windows; the refusal names the offending weight.
