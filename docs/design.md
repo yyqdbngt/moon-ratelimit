@@ -45,3 +45,7 @@ with the MoonBit; agreement on random schedules is the check.
 ## Rate parameter space
 
 The rate parameter is any positive finite double. Rates below one (fractional tokens per second) are exercised by the fuzz suite; the bucket and GCRA both compute in doubles and agree bitwise on dyadic rates.
+
+## Window semantics detail
+
+The sliding window holds the half-open interval (now - window, now]: an event exactly at now - window has aged out. The fixed window counts per wall-clock bucket with no carry-over across boundaries, which admits up to 2x the limit through a boundary straddle.
