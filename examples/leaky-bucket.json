@@ -1,0 +1,1 @@
+{"algorithm":"leaky_bucket","rate":1,"burst":2,"events":[{"at":0},{"at":0},{"at":0},{"at":3}]}

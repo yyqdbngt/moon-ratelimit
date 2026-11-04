@@ -12,3 +12,4 @@ node _build/js/debug/build/cmd/main/main.js examples/<name>.json
 | `gcra.json` | the same schedule answered by GCRA, verdict for verdict |
 | `windows.json` | the fixed-window boundary burst the sliding window refuses |
 | `backoff.json` | a seeded jitter table that reproduces from its seed |
+| `leaky-bucket.json` | the queue-side dual filling and draining |
