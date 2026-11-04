@@ -540,5 +540,17 @@
       "attempts": 5,
       "seed": 0
     }
+  },
+  {
+    "name": "backoff full jitter seed 1",
+    "request": {
+      "operation": "backoff",
+      "base_ms": 10,
+      "multiplier": 2,
+      "max_ms": 1000,
+      "jitter": "full",
+      "attempts": 4,
+      "seed": 1
+    }
   }
 ]
