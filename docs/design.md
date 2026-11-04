@@ -101,3 +101,7 @@ The exact sliding window remembers every admitted (time, weight) entry until it 
 ## Bulk operation scope
 
 bulk is a token-bucket-only convenience in 0.2.0. Extending it to other algorithms requires defining what batch admission means for a window (whole-batch or per-event) and for GCRA (whether the tat advances per event or once.
+
+## Retry composition
+
+The library provides both a limiter (retry_after in seconds) and a backoff (delay in milliseconds). Combining them — sleeping max(retry_after, backoff) — is caller policy, not library behavior, because the right composition depends on the deployment.
