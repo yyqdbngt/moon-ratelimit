@@ -496,5 +496,25 @@
     "expected": {
       "allowed": 2
     }
+  },
+  {
+    "name": "sliding window within",
+    "request": {
+      "algorithm": "sliding_window",
+      "limit": 1,
+      "window_seconds": 2,
+      "events": [
+        {
+          "at": 0
+        },
+        {
+          "at": 1.5
+        }
+      ]
+    },
+    "expected": {
+      "allowed": 1,
+      "denied": 1
+    }
   }
 ]
