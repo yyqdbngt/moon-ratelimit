@@ -21,6 +21,8 @@ printf 'fixtures: '
 node scripts/check.mjs | tail -1
 printf 'oracle: '
 python3 -B scripts/reference.py | tail -1
+printf 'robustness: '
+  python3 -B scripts/robustness.py | tail -1
 printf 'stats: '
 python3 -B scripts/stats.py | tail -1
 moon fmt --check
